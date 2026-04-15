@@ -1,0 +1,17 @@
+{
+  "name": "polaris_t4",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+ "scripts": {
+  "build": "npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.2.2",
+    "tailwindcss": "^4.2.2"
+  }
+}
