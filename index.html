@@ -1,17 +1,69 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="./dist/output.css" rel="stylesheet">
-<title>POLARIS</title>
+    <meta charset="UTF-8">
+    <title>POLARIS - Registro de Miembros</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="min-h-screen flex items-center justify-center bg-slate-100">
+<body>
+    <div class="container">
+        <div class="card">
+            <h1 class="titulo-principal">POLARIS | Registro de Miembros</h1>
+            <hr>
+            <h2 class="subtitulo">Registrar nuevo miembro</h2>
+            <form id="formRegistro">
+                <div class="form-group">
+                    <label class="label">Nombre completo</label>
+                    <input type="text" id="nombre" class="input" placeholder="Ejemplo: Sofía Luna López" required>
+                </div>
 
-<button class="bg-blue-500 text-white px-4 py-2 rounded">
-¡Hola Tailwind!
-</button>
+                <div class="form-group">
+                    <label class="label">Correo electrónico</label>
+                    <input type="email" id="correo" class="input" placeholder="ejemplo@dominio.com" required>
+                </div>
 
+                <div class="form-group">
+                    <label class="label">Rol en el equipo</label>
+                    <select id="rol" class="select" required>
+                        <option value="">Selecciona un rol</option>
+                        <option value="líder">Líder de equipo</option>
+                        <option value="investigador">Participante</option>
+                        <option value="desarrollador">Mentor</option>
+                        <option value="coordinador">Coordinador</option>
+                        <option value="colaborador">Colaborador</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn">Registrar miembro</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2 class="subtitulo">Miembros registrados</h2>
+            <hr>
+            <table class="table" id="tablaMiembros">
+                <thead>
+                    <tr>
+                        <th class="table-header">ID</th>
+                        <th class="table-header">Nombre</th>
+                        <th class="table-header">Correo Electrónico</th>
+                        <th class="table-header">Rol</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="4" class="empty-message">Cargando miembros...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            POLARIS 2026
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
