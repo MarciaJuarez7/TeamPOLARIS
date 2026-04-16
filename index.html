@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>POLARIS - Registro de Miembros</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="src/input.css">
 </head>
 
 <body>
@@ -27,15 +27,42 @@
                     <label class="label">Rol en el equipo</label>
                     <select id="rol" class="select" required>
                         <option value="">Selecciona un rol</option>
-                        <option value="líder">Líder de equipo</option>
-                        <option value="investigador">Participante</option>
-                        <option value="desarrollador">Mentor</option>
-                        <option value="coordinador">Coordinador</option>
-                        <option value="colaborador">Colaborador</option>
+                        <option value="Líder de equipo">Líder de equipo</option>
+                        <option value="Participante">Participante</option>
+                        <option value="Mentor">Mentor</option>
+                        <option value="Coordinador">Coordinador</option>
+                        <option value="Colaborador">Colaborador</option>
                     </select>
                 </div>
 
                 <button type="submit" class="btn">Registrar miembro</button>
+            </form>
+        </div>
+
+        <!-- Formulario de edición oculto -->
+        <div class="card" id="cardEdicion" style="display:none;">
+            <h2 class="subtitulo">Editar miembro</h2>
+            <form id="formEdicion">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label class="label">Nombre completo</label>
+                    <input type="text" id="editNombre" class="input" required>
+                </div>
+                <div class="form-group">
+                    <label class="label">Correo electrónico</label>
+                    <input type="email" id="editCorreo" class="input" required>
+                </div>
+                <div class="form-group">
+                    <label class="label">Rol en el equipo</label>
+                    <select id="editRol" class="select" required>
+                        <option value="Líder de equipo">Líder de equipo</option>
+                        <option value="Participante">Participante</option>
+                        <option value="Mentor">Mentor</option>
+                        <option value="Coordinador">Coordinador</option>
+                        <option value="Colaborador">Colaborador</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-edit">Guardar cambios</button>
             </form>
         </div>
 
@@ -49,11 +76,12 @@
                         <th class="table-header">Nombre</th>
                         <th class="table-header">Correo Electrónico</th>
                         <th class="table-header">Rol</th>
+                        <th class="table-header">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
                     <tr>
-                        <td colspan="4" class="empty-message">Cargando miembros...</td>
+                        <td colspan="5" class="empty-message">Cargando miembros...</td>
                     </tr>
                 </tbody>
             </table>
@@ -61,6 +89,18 @@
 
         <div class="footer">
             POLARIS 2026
+        </div>
+    </div>
+
+    <!-- Modal genérico -->
+    <div id="modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3 id="modal-title"></h3>
+            <p id="modal-message"></p>
+            <div class="modal-actions">
+                <button id="modal-ok" class="btn">Aceptar</button>
+                <button id="modal-cancel" class="btn-delete" style="display:none;">Cancelar</button>
+            </div>
         </div>
     </div>
 
