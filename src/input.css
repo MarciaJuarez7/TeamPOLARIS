@@ -161,6 +161,22 @@ hr {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
 }
+
+.btn-cancelarEdit{
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.btn-cancelarEdit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+}
 /* Modal genérico */
 .modal {
     position: fixed;

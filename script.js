@@ -136,7 +136,7 @@ document.getElementById('formEdicion').addEventListener('submit', async function
         });
 
         if (respuesta.ok) {
-            document.getElementById('cardEdicion').style.display = 'none';
+            cancelarEdicion();
             cargarMiembros();
             mostrarModal("Actualización", "Miembro actualizado correctamente");
         } else {
@@ -147,6 +147,15 @@ document.getElementById('formEdicion').addEventListener('submit', async function
         mostrarModal("Error de conexión", "No se pudo conectar con el servidor");
     }
 });
+
+// Cancelar edición sin guardar cambios
+function cancelarEdicion() {
+    document.getElementById('formEdicion').reset();
+    document.getElementById('editId').value = '';
+    document.getElementById('cardEdicion').style.display = 'none';
+}
+
+document.getElementById('btnCancelarEdicion').addEventListener('click', cancelarEdicion);
 
 // Eliminar miembro
 async function eliminarMiembro(id) {
