@@ -90,6 +90,61 @@
             </table>
         </div>
 
+        <!-- Registro de Proyectos/Eventos/Actividades -->
+<div class="card">
+    <h2 class="subtitulo">Registrar Proyecto / Evento / Actividad</h2>
+    <hr>
+    <form id="formProyecto">
+        <div class="form-group">
+            <label class="label">Nombre del proyecto/evento</label>
+            <input type="text" id="proyectoNombre" class="input" placeholder="Ejemplo: Hackathon Tech 2026" required>
+        </div>
+
+        <div class="form-group">
+            <label class="label">Tipo</label>
+            <select id="proyectoTipo" class="select" required>
+                <option value="">Selecciona un tipo</option>
+                <option value="Proyecto">Proyecto academico</option>
+                <option value="Competencia">Competencia</option>
+                <option value="Evento">Evento</option>
+                <option value="Actividad">Actividad</option>
+                <option value="Hackathon">Hackathon</option>
+                <option value="Feria">Feria</option>
+                <option value="Prototipo">Prototipo</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="label">Fecha o periodo</label>
+            <input type="text" id="proyectoFecha" class="input" placeholder="Ejemplo: Marzo 2026 o 15/03/2026" required>
+        </div>
+
+        <div class="form-group">
+            <label class="label">Descripcion breve</label>
+            <textarea id="proyectoDescripcion" class="input" rows="3" placeholder="Describe brevemente el proyecto, evento o actividad..." required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="label">Seleccionar participantes iniciales</label>
+            <div id="participantesCheckboxes" class="participantes-container">
+                <p class="empty-message">Cargando miembros disponibles...</p>
+            </div>
+            <small style="color: #64748b; display: block; margin-top: 5px;">Selecciona uno o mas miembros participantes</small>
+        </div>
+
+        <button type="submit" class="btn">Registrar Proyecto/Evento</button>
+    </form>
+</div>
+
+<!-- Listado de Proyectos/Eventos/Actividades Registrados -->
+<div class="card">
+    <h2 class="subtitulo">Proyectos, Eventos y Actividades Registrados</h2>
+    <hr>
+    <div id="listaProyectos" class="proyectos-grid">
+        <p class="empty-message">No hay proyectos registrados aun. Crea el primero!</p>
+    </div>
+</div> 
+
         <div class="footer">
             POLARIS 2026
         </div>

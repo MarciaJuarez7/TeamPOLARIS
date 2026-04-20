@@ -177,3 +177,229 @@ async function eliminarMiembro(id) {
         }
     });
 }
+
+// ==================== MODULO DE PROYECTOS/EVENTOS/ACTIVIDADES ====================
+
+// Variables globales para proyectos
+let proyectos = [];
+let miembrosParaProyectos = [];
+
+// Cargar miembros desde el servidor para los checkboxes
+async function cargarMiembrosParaCheckboxes() {
+    try {
+        const response = await fetch('/api/miembros');
+        if (response.ok) {
+            miembrosParaProyectos = await response.json();
+            renderCheckboxesParticipantes();
+        } else {
+            document.getElementById('participantesCheckboxes').innerHTML = 
+                '<p class="empty-message" style="color: red;">Error al cargar miembros</p>';
+        }
+    } catch (error) {
+        console.error('Error cargando miembros:', error);
+        document.getElementById('participantesCheckboxes').innerHTML = 
+            '<p class="empty-message" style="color: red;">No se pudo conectar con el servidor</p>';
+    }
+}
+
+// Renderizar checkboxes de participantes
+function renderCheckboxesParticipantes() {
+    const container = document.getElementById('participantesCheckboxes');
+    
+    if (!miembrosParaProyectos || miembrosParaProyectos.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+                <p class="empty-message">No hay miembros registrados.</p>
+                <p style="font-size: 0.8rem; color: #64748b;">Registra miembros primero en el formulario superior.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = miembrosParaProyectos.map(miembro => `
+        <div class="checkbox-item">
+            <input type="checkbox" id="miembro_${miembro.id}" value="${miembro.id}" class="participante-checkbox">
+            <label for="miembro_${miembro.id}">
+                ${escapeHtml(miembro.nombre)}
+                <span class="rol-badge">${escapeHtml(miembro.rol)}</span>
+                <span style="font-size: 0.7rem; color: #94a3b8;"> ${escapeHtml(miembro.correo)}</span>
+            </label>
+        </div>
+    `).join('');
+}
+
+// Obtener lista completa de participantes seleccionados
+function getParticipantesSeleccionados() {
+    const checkboxes = document.querySelectorAll('.participante-checkbox:checked');
+    const idsSeleccionados = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    return miembrosParaProyectos.filter(miembro => idsSeleccionados.includes(miembro.id));
+}
+
+// Registrar nuevo proyecto/evento/actividad
+async function registrarProyecto(event) {
+    event.preventDefault();
+    
+    const nombre = document.getElementById('proyectoNombre').value.trim();
+    const tipo = document.getElementById('proyectoTipo').value;
+    const fecha = document.getElementById('proyectoFecha').value.trim();
+    const descripcion = document.getElementById('proyectoDescripcion').value.trim();
+    const participantes = getParticipantesSeleccionados();
+    
+    // Validaciones
+    if (!nombre) {
+        mostrarModal('Error de validacion', 'Por favor ingresa el nombre del proyecto/evento.');
+        return;
+    }
+    
+    if (!tipo) {
+        mostrarModal('Error de validacion', 'Por favor selecciona un tipo.');
+        return;
+    }
+    
+    if (!fecha) {
+        mostrarModal('Error de validacion', 'Por favor ingresa la fecha o periodo.');
+        return;
+    }
+    
+    if (!descripcion) {
+        mostrarModal('Error de validacion', 'Por favor ingresa una descripcion breve.');
+        return;
+    }
+    
+    if (participantes.length === 0) {
+        mostrarModal('Error de validacion', 'Debes seleccionar al menos un participante inicial.');
+        return;
+    }
+    
+    const nuevoProyecto = {
+        nombre,
+        tipo,
+        fecha,
+        descripcion,
+        participantes: participantes
+    };
+    
+    try {
+        const response = await fetch('/api/proyectos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nuevoProyecto)
+        });
+        
+        if (response.ok) {
+            const guardado = await response.json();
+            mostrarModal('Exito', `${tipo} "${nombre}" registrado correctamente con ${participantes.length} participante(s).`);
+            
+            // Resetear formulario
+            document.getElementById('formProyecto').reset();
+            
+            // Desmarcar todos los checkboxes
+            document.querySelectorAll('.participante-checkbox').forEach(cb => cb.checked = false);
+            
+            // Recargar lista de proyectos
+            await cargarProyectos();
+            
+            // Recargar checkboxes
+            await cargarMiembrosParaCheckboxes();
+        } else {
+            const error = await response.json();
+            mostrarModal('Error', error.error || 'No se pudo registrar el proyecto.');
+        }
+    } catch (error) {
+        console.error('Error registrando proyecto:', error);
+        mostrarModal('Error de conexion', 'No se pudo conectar con el servidor.');
+    }
+}
+
+// Cargar todos los proyectos desde el backend
+async function cargarProyectos() {
+    try {
+        const response = await fetch('/api/proyectos');
+        if (response.ok) {
+            proyectos = await response.json();
+            renderListaProyectos();
+        } else {
+            document.getElementById('listaProyectos').innerHTML = 
+                '<p class="empty-message" style="color: red;">Error al cargar proyectos</p>';
+        }
+    } catch (error) {
+        console.error('Error cargando proyectos:', error);
+        document.getElementById('listaProyectos').innerHTML = 
+            '<p class="empty-message" style="color: red;">No se pudo conectar con el servidor</p>';
+    }
+}
+
+// Renderizar la lista de proyectos en tarjetas
+function renderListaProyectos() {
+    const container = document.getElementById('listaProyectos');
+    
+    if (!proyectos || proyectos.length === 0) {
+        container.innerHTML = '<p class="empty-message">No hay proyectos, eventos o actividades registrados aun. Crea el primero usando el formulario!</p>';
+        return;
+    }
+    
+    // Ordenar por id (mas reciente primero)
+    const proyectosOrdenados = [...proyectos].reverse();
+    
+    container.innerHTML = proyectosOrdenados.map(proyecto => {
+        return `
+            <div class="proyecto-card">
+                <h3>${getIconoPorTipo(proyecto.tipo)} ${escapeHtml(proyecto.nombre)}</h3>
+                <div class="proyecto-tipo">${escapeHtml(proyecto.tipo)}</div>
+                <div class="proyecto-fecha">Fecha: ${escapeHtml(proyecto.fecha)}</div>
+                <div class="proyecto-descripcion">${escapeHtml(proyecto.descripcion)}</div>
+                <div class="proyecto-participantes">
+                    <h4>Participantes (${proyecto.participantes.length})</h4>
+                    ${proyecto.participantes.map(p => 
+                        `<span class="participante-tag">${escapeHtml(p.nombre)} (${escapeHtml(p.rol)})</span>`
+                    ).join('')}
+                </div>
+                <div style="margin-top: 12px; font-size: 0.7rem; color: #94a3b8; text-align: right;">
+                    ID: ${proyecto.id}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Helper: obtener icono segun tipo
+function getIconoPorTipo(tipo) {
+    const iconos = {
+        'Proyecto': '📁',
+        'Competencia': '🏆',
+        'Evento': '🎉',
+        'Actividad': '📝',
+        'Hackathon': '💻',
+        'Feria': '🎪',
+        'Prototipo': '🔧'
+    };
+    return iconos[tipo] || '📌';
+}
+
+// Helper: escapar HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Inicializar el modulo de proyectos
+function inicializarModuloProyectos() {
+    cargarMiembrosParaCheckboxes();
+    cargarProyectos();
+    
+    const formProyecto = document.getElementById('formProyecto');
+    if (formProyecto) {
+        formProyecto.addEventListener('submit', registrarProyecto);
+    }
+}
+
+// Inicializar cuando el DOM este listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(inicializarModuloProyectos, 500);
+    });
+} else {
+    setTimeout(inicializarModuloProyectos, 500);
+}

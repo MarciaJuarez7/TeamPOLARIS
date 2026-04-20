@@ -74,6 +74,56 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+
+// ========== NUEVO MODULO: PROYECTOS/EVENTOS/ACTIVIDADES ==========
+
+// Base de datos temporal en memoria para proyectos
+let proyectos = [];
+let idProyectoActual = 1;
+
+// RUTA: Obtener todos los proyectos (READ)
+app.get('/api/proyectos', (req, res) => {
+    res.json(proyectos);
+});
+
+// RUTA: Registrar nuevo proyecto/evento/actividad (CREATE)
+app.post('/api/proyectos', (req, res) => {
+    const { nombre, tipo, fecha, descripcion, participantes } = req.body;
+
+    if (!nombre || !tipo || !fecha || !descripcion || !participantes) {
+        return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+    }
+
+    if (participantes.length === 0) {
+        return res.status(400).json({ error: 'Debe seleccionar al menos un participante' });
+    }
+
+    const nuevoProyecto = {
+        id: idProyectoActual++,
+        nombre,
+        tipo,
+        fecha,
+        descripcion,
+        participantes,
+        fechaRegistro: new Date().toISOString()
+    };
+
+    proyectos.push(nuevoProyecto);
+    res.status(201).json(nuevoProyecto);
+});
+
+// RUTA: Obtener un proyecto especifico
+app.get('/api/proyectos/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const proyecto = proyectos.find(p => p.id === id);
+    
+    if (!proyecto) {
+        return res.status(404).json({ error: 'Proyecto no encontrado' });
+    }
+    
+    res.json(proyecto);
+});
+
 // Iniciar servidor
 app.listen(port, () => {
     console.log(`Servidor corriendo en http://localhost:${port}`);
