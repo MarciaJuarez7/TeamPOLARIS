@@ -136,6 +136,55 @@
     </form>
 </div>
 
+<!-- Formulario de edición de proyectos oculto -->
+<div class="card" id="cardEdicionProyecto" style="display:none;">
+    <h2 class="subtitulo">Editar Proyecto / Evento / Actividad</h2>
+    <hr>
+    <form id="formEdicionProyecto">
+        <input type="hidden" id="editProyectoId">
+        <div class="form-group">
+            <label class="label">Nombre del proyecto/evento</label>
+            <input type="text" id="editProyectoNombre" class="input" required>
+        </div>
+
+        <div class="form-group">
+            <label class="label">Tipo</label>
+            <select id="editProyectoTipo" class="select" required>
+                <option value="Proyecto">Proyecto academico</option>
+                <option value="Competencia">Competencia</option>
+                <option value="Evento">Evento</option>
+                <option value="Actividad">Actividad</option>
+                <option value="Hackathon">Hackathon</option>
+                <option value="Feria">Feria</option>
+                <option value="Prototipo">Prototipo</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="label">Fecha o periodo</label>
+            <input type="text" id="editProyectoFecha" class="input" required>
+        </div>
+
+        <div class="form-group">
+            <label class="label">Descripcion breve</label>
+            <textarea id="editProyectoDescripcion" class="input" rows="3" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="label">Seleccionar participantes</label>
+            <div id="editParticipantesCheckboxes" class="participantes-container">
+                <p class="empty-message">Cargando miembros disponibles...</p>
+            </div>
+            <small style="color: #64748b; display: block; margin-top: 5px;">Selecciona uno o mas miembros participantes</small>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-edit">Guardar cambios</button>
+            <button type="button" id="btnCancelarEdicionProyecto" class="btn-cancelarEdit">Cancelar</button>
+        </div>
+    </form>
+</div>
+
 <!-- Listado de Proyectos/Eventos/Actividades Registrados -->
 <div class="card">
     <h2 class="subtitulo">Proyectos, Eventos y Actividades Registrados</h2>

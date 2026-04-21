@@ -50,6 +50,7 @@ document.getElementById('formRegistro').addEventListener('submit', async functio
         if (respuesta.ok) {
             document.getElementById('formRegistro').reset();
             cargarMiembros();
+            cargarMiembrosParaCheckboxes(); // Actualizar checkboxes de participantes
             mostrarModal("Registro exitoso", "¡Miembro registrado correctamente!");
         } else {
             mostrarModal("Error", "No se pudo registrar el miembro");
@@ -354,6 +355,10 @@ function renderListaProyectos() {
                         `<span class="participante-tag">${escapeHtml(p.nombre)} (${escapeHtml(p.rol)})</span>`
                     ).join('')}
                 </div>
+                <div class="proyecto-acciones">
+                    <button class="btn-edit" onclick="editarProyecto(${proyecto.id})">Editar</button>
+                    <button class="btn-delete" onclick="eliminarProyecto(${proyecto.id})">Eliminar</button>
+                </div>
                 <div style="margin-top: 12px; font-size: 0.7rem; color: #94a3b8; text-align: right;">
                     ID: ${proyecto.id}
                 </div>
@@ -382,6 +387,160 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// ==================== FUNCIONES PARA EDITAR PROYECTOS ====================
+
+// Mostrar formulario de edición con datos del proyecto
+async function editarProyecto(id) {
+    try {
+        const respuesta = await fetch(`/api/proyectos/${id}`);
+        const proyecto = await respuesta.json();
+
+        if (!respuesta.ok) {
+            mostrarModal("Error", "Proyecto no encontrado");
+            return;
+        }
+
+        document.getElementById('editProyectoId').value = proyecto.id;
+        document.getElementById('editProyectoNombre').value = proyecto.nombre;
+        document.getElementById('editProyectoTipo').value = proyecto.tipo;
+        document.getElementById('editProyectoFecha').value = proyecto.fecha;
+        document.getElementById('editProyectoDescripcion').value = proyecto.descripcion;
+
+        // Marcar los participantes actuales
+        renderCheckboxesEdicionParticipantes(proyecto.participantes);
+
+        document.getElementById('cardEdicionProyecto').style.display = 'block';
+        // Scroll to the edit form
+        document.getElementById('cardEdicionProyecto').scrollIntoView({ behavior: 'smooth' });
+    } catch (error) {
+        console.error("Error al cargar proyecto:", error);
+        mostrarModal("Error", "No se pudo cargar el proyecto");
+    }
+}
+
+// Renderizar checkboxes de participantes para edición
+function renderCheckboxesEdicionParticipantes(participantesActuales) {
+    const container = document.getElementById('editParticipantesCheckboxes');
+    
+    if (!miembrosParaProyectos || miembrosParaProyectos.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+                <p class="empty-message">No hay miembros registrados.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const idsParticipantes = participantesActuales.map(p => p.id);
+    
+    container.innerHTML = miembrosParaProyectos.map(miembro => {
+        const checked = idsParticipantes.includes(miembro.id) ? 'checked' : '';
+        return `
+            <div class="checkbox-item">
+                <input type="checkbox" id="edit_miembro_${miembro.id}" value="${miembro.id}" class="edit-participante-checkbox" ${checked}>
+                <label for="edit_miembro_${miembro.id}">
+                    ${escapeHtml(miembro.nombre)}
+                    <span class="rol-badge">${escapeHtml(miembro.rol)}</span>
+                    <span style="font-size: 0.7rem; color: #94a3b8;"> ${escapeHtml(miembro.correo)}</span>
+                </label>
+            </div>
+        `;
+    }).join('');
+}
+
+// Obtener lista completa de participantes seleccionados en edición
+function getParticipantesSeleccionadosEdicion() {
+    const checkboxes = document.querySelectorAll('.edit-participante-checkbox:checked');
+    const idsSeleccionados = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    return miembrosParaProyectos.filter(miembro => idsSeleccionados.includes(miembro.id));
+}
+
+// Guardar cambios desde el formulario de edición de proyecto
+document.getElementById('formEdicionProyecto').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const id = document.getElementById('editProyectoId').value;
+    const nombre = document.getElementById('editProyectoNombre').value.trim();
+    const tipo = document.getElementById('editProyectoTipo').value;
+    const fecha = document.getElementById('editProyectoFecha').value.trim();
+    const descripcion = document.getElementById('editProyectoDescripcion').value.trim();
+    const participantes = getParticipantesSeleccionadosEdicion();
+
+    // Validaciones
+    if (!nombre || !tipo || !fecha || !descripcion) {
+        mostrarModal('Error de validación', 'Todos los campos son obligatorios.');
+        return;
+    }
+    
+    if (participantes.length === 0) {
+        mostrarModal('Error de validación', 'Debes seleccionar al menos un participante.');
+        return;
+    }
+
+    try {
+        const respuesta = await fetch(`/api/proyectos/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, tipo, fecha, descripcion, participantes })
+        });
+
+        if (respuesta.ok) {
+            cancelarEdicionProyecto();
+            cargarProyectos();
+            mostrarModal("Actualización", `${tipo} "${nombre}" actualizado correctamente`);
+        } else {
+            const error = await respuesta.json();
+            mostrarModal("Error", error.error || "No se pudo actualizar el proyecto");
+        }
+    } catch (error) {
+        console.error("Error al editar proyecto:", error);
+        mostrarModal("Error de conexión", "No se pudo conectar con el servidor");
+    }
+});
+
+// Cancelar edición de proyecto sin guardar cambios
+function cancelarEdicionProyecto() {
+    document.getElementById('formEdicionProyecto').reset();
+    document.getElementById('editProyectoId').value = '';
+    document.getElementById('cardEdicionProyecto').style.display = 'none';
+}
+
+document.getElementById('btnCancelarEdicionProyecto').addEventListener('click', cancelarEdicionProyecto);
+
+// Eliminar proyecto
+async function eliminarProyecto(id) {
+    // Primero obtener el proyecto para mostrar su nombre en la confirmación
+    try {
+        const respuesta = await fetch(`/api/proyectos/${id}`);
+        const proyecto = await respuesta.json();
+        
+        if (!respuesta.ok) {
+            mostrarModal("Error", "Proyecto no encontrado");
+            return;
+        }
+
+        mostrarModal(`${proyecto.tipo}: ${proyecto.nombre}`, `¿Seguro que deseas eliminar "${proyecto.nombre}"? Esta acción no se puede deshacer.`, "confirm", async (confirmado) => {
+            if (!confirmado) return;
+
+            try {
+                const respuesta = await fetch(`/api/proyectos/${id}`, { method: 'DELETE' });
+
+                if (respuesta.ok) {
+                    cargarProyectos();
+                    mostrarModal("Eliminado", `${proyecto.tipo} "${proyecto.nombre}" eliminado correctamente`);
+                } else {
+                    mostrarModal("Error", "No se pudo eliminar el proyecto");
+                }
+            } catch (error) {
+                console.error("Error al eliminar proyecto:", error);
+                mostrarModal("Error de conexión", "No se pudo conectar con el servidor");
+            }
+        });
+    } catch (error) {
+        console.error("Error al obtener proyecto para eliminación:", error);
+        mostrarModal("Error", "No se pudo obtener información del proyecto");
+    }
 }
 
 // Inicializar el modulo de proyectos

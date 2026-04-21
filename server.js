@@ -124,6 +124,46 @@ app.get('/api/proyectos/:id', (req, res) => {
     res.json(proyecto);
 });
 
+// RUTA: Actualizar proyecto existente (UPDATE)
+app.put('/api/proyectos/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const { nombre, tipo, fecha, descripcion, participantes } = req.body;
+
+    const proyecto = proyectos.find(p => p.id === id);
+    if (!proyecto) {
+        return res.status(404).json({ error: 'Proyecto no encontrado' });
+    }
+
+    if (!nombre || !tipo || !fecha || !descripcion || !participantes) {
+        return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+    }
+
+    if (participantes.length === 0) {
+        return res.status(400).json({ error: 'Debe seleccionar al menos un participante' });
+    }
+
+    proyecto.nombre = nombre;
+    proyecto.tipo = tipo;
+    proyecto.fecha = fecha;
+    proyecto.descripcion = descripcion;
+    proyecto.participantes = participantes;
+
+    res.json({ mensaje: 'Proyecto actualizado correctamente', proyecto });
+});
+
+// RUTA: Eliminar proyecto (DELETE)
+app.delete('/api/proyectos/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const indice = proyectos.findIndex(p => p.id === id);
+
+    if (indice === -1) {
+        return res.status(404).json({ error: 'Proyecto no encontrado' });
+    }
+
+    proyectos.splice(indice, 1);
+    res.json({ mensaje: 'Proyecto eliminado correctamente' });
+});
+
 // Iniciar servidor
 app.listen(port, () => {
     console.log(`Servidor corriendo en http://localhost:${port}`);
