@@ -352,3 +352,34 @@ hr {
         grid-template-columns: 1fr;
     }
 }
+
+/* ========== FORMULARIOS MÁS ANGOSTOS ========== */
+/* Los cards que contienen formularios se centran y angostan */
+.card:has(form) {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Los cards con tablas mantienen el ancho completo */
+.card:has(table) {
+    max-width: 100%;
+}
+
+/* Para la card de proyectos (que tiene grid de tarjetas) */
+.card:has(.proyectos-grid) {
+    max-width: 100%;
+}
+
+/* Ajuste para la card de edición (también es formulario) */
+#cardEdicion,
+#cardEdicionProyecto {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Los botones de los formularios se mantienen al 100% dentro del card angosto */
+.card:has(form) .btn {
+    width: 100%;
+}
