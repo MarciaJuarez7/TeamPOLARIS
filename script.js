@@ -1,9 +1,33 @@
 // Al cargar la página, se muestran los miembros
 document.addEventListener('DOMContentLoaded', function() {
     cargarMiembros();
+    setTimeout(() => {
+        inicializarModuloProyectos();
+        actualizarContadoresDashboard();
+    }, 100);
 });
 
-// Función para mostrar modal
+async function actualizarContadoresDashboard() {
+    try {
+        const responseMiembros = await fetch('/api/miembros');
+        const miembros = await responseMiembros.json();
+        
+        const responseProyectos = await fetch('/api/proyectos');
+        const proyectos = await responseProyectos.json();
+        
+        const responseEventos = await fetch('/api/eventos');
+        const eventos = await responseEventos.json();
+        
+        const totalMiembrosSpan = document.getElementById('totalMiembros');
+        const totalProyectosSpan = document.getElementById('totalProyectos');
+        const totalEventosSpan = document.getElementById('totalEventos');
+        
+        if (totalMiembrosSpan) totalMiembrosSpan.textContent = miembros.length;
+        if (totalProyectosSpan) totalProyectosSpan.textContent = proyectos.length;
+        if (totalEventosSpan) totalEventosSpan.textContent = eventos.length;
+    } catch (error) {}
+}
+
 function mostrarModal(titulo, mensaje, tipo="info", callback=null) {
     const modal = document.getElementById('modal');
     const modalTitle = document.getElementById('modal-title');
@@ -32,36 +56,40 @@ function mostrarModal(titulo, mensaje, tipo="info", callback=null) {
     };
 }
 
-// Registrar nuevo miembro
-document.getElementById('formRegistro').addEventListener('submit', async function(evento) {
-    evento.preventDefault();
+const formRegistro = document.getElementById('formRegistro');
+if (formRegistro) {
+    formRegistro.addEventListener('submit', async function(evento) {
+        evento.preventDefault();
 
-    const nombre = document.getElementById('nombre').value;
-    const correo = document.getElementById('correo').value;
-    const rol = document.getElementById('rol').value;
+        const nombre = document.getElementById('nombre').value;
+        const correo = document.getElementById('correo').value;
+        const rol = document.getElementById('rol').value;
 
-    try {
-        const respuesta = await fetch('/api/miembros', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre, correo, rol })
-        });
+        try {
+            const respuesta = await fetch('/api/miembros', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, correo, rol })
+            });
 
-        if (respuesta.ok) {
-            document.getElementById('formRegistro').reset();
-            cargarMiembros();
-            cargarMiembrosParaCheckboxes(); // Actualizar checkboxes de participantes
-            mostrarModal("Registro exitoso", "¡Miembro registrado correctamente!");
-        } else {
-            mostrarModal("Error", "No se pudo registrar el miembro");
+            if (respuesta.ok) {
+                document.getElementById('formRegistro').reset();
+                await cargarMiembros();
+                await cargarMiembrosParaCheckboxes();
+                await actualizarContadoresDashboard();
+                mostrarModal("Registro exitoso", "¡Miembro registrado correctamente!");
+            } else {
+                mostrarModal("Error", "No se pudo registrar el miembro");
+            }
+        } catch (error) {
+            mostrarModal("Error de conexión", "No se pudo conectar con el servidor");
         }
-    } catch (error) {
-        console.error('Error:', error);
-        mostrarModal("Error de conexión", "No se pudo conectar con el servidor");
-    }
-});
+    });
+}
 
-// Cargar miembros en la tabla
+
+
+// Cargar miembros
 async function cargarMiembros() {
     try {
         const respuesta = await fetch('/api/miembros');
@@ -69,35 +97,46 @@ async function cargarMiembros() {
 
         const tableBody = document.getElementById('tableBody');
 
+        if (!tableBody) return;
+
         if (miembros.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" class="empty-message">No hay miembros registrados</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-slate-500 italic">No hay miembros registrados</td></tr>';
             return;
         }
 
         let contenido = '';
         for (let miembro of miembros) {
             contenido += `
-                <tr class="row">
-                    <td class="table-cell">${miembro.id}</td>
-                    <td class="table-cell">${miembro.nombre}</td>
-                    <td class="table-cell">${miembro.correo}</td>
-                    <td class="table-cell">${miembro.rol}</td>
-                    <td class="table-cell">
-                        <button class="btn-edit" onclick="editarMiembro(${miembro.id})">Editar</button>
-                        <button class="btn-delete" onclick="eliminarMiembro(${miembro.id})">Eliminar</button>
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="px-4 py-3 border-b">${miembro.id}</td>
+                    <td class="px-4 py-3 border-b font-medium">${escapeHtml(miembro.nombre)}</td>
+                    <td class="px-4 py-3 border-b hidden md:table-cell">${escapeHtml(miembro.correo)}</td>
+                    <td class="px-4 py-3 border-b">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">${escapeHtml(miembro.rol)}</span>
+                    </td>
+                    <td class="px-4 py-3 border-b">
+                        <div class="flex gap-2">
+                            <button class="bg-teal-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-teal-600 transition" onclick="editarMiembro(${miembro.id})">
+                                Editar
+                            </button>
+                            <button class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition" onclick="eliminarMiembro(${miembro.id})">
+                                Eliminar
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
         }
         tableBody.innerHTML = contenido;
     } catch (error) {
-        console.error('Error al cargar miembros:', error);
         const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = '<tr><td colspan="5" class="empty-message" style="color: red;">Error al cargar los miembros</td></tr>';
+        if (tableBody) {
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-red-500 italic">Error al cargar los miembros</td></tr>';
+        }
     }
 }
 
-// Mostrar formulario de edición con datos del miembro
+
 async function editarMiembro(id) {
     try {
         const respuesta = await fetch('/api/miembros');
@@ -114,51 +153,57 @@ async function editarMiembro(id) {
         document.getElementById('editCorreo').value = miembro.correo;
         document.getElementById('editRol').value = miembro.rol;
 
-        document.getElementById('cardEdicion').style.display = 'block';
+        document.getElementById('cardEdicion').style.display = 'flex';
     } catch (error) {
-        console.error("Error al cargar miembro:", error);
+
         mostrarModal("Error", "No se pudo cargar el miembro");
+
     }
 }
 
-// Guardar cambios desde el formulario de edición
-document.getElementById('formEdicion').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const id = document.getElementById('editId').value;
-    const nombre = document.getElementById('editNombre').value;
-    const correo = document.getElementById('editCorreo').value;
-    const rol = document.getElementById('editRol').value;
 
-    try {
-        const respuesta = await fetch(`/api/miembros/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre, correo, rol })
-        });
+const formEdicion = document.getElementById('formEdicion');
+if (formEdicion) {
+    formEdicion.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('editId').value;
+        const nombre = document.getElementById('editNombre').value;
+        const correo = document.getElementById('editCorreo').value;
+        const rol = document.getElementById('editRol').value;
 
-        if (respuesta.ok) {
-            cancelarEdicion();
-            cargarMiembros();
-            mostrarModal("Actualización", "Miembro actualizado correctamente");
-        } else {
-            mostrarModal("Error", "No se pudo actualizar el miembro");
+        try {
+            const respuesta = await fetch(`/api/miembros/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, correo, rol })
+            });
+
+            if (respuesta.ok) {
+                cancelarEdicion();
+                await cargarMiembros();
+                await cargarMiembrosParaCheckboxes();
+                await actualizarContadoresDashboard();
+                mostrarModal("Actualización", "Miembro actualizado correctamente");
+            } else {
+                mostrarModal("Error", "No se pudo actualizar el miembro");
+            }
+        } catch (error) {
+            mostrarModal("Error de conexión", "No se pudo conectar con el servidor");
         }
-    } catch (error) {
-        console.error("Error al editar miembro:", error);
-        mostrarModal("Error de conexión", "No se pudo conectar con el servidor");
-    }
-});
+    });
+}
 
-// Cancelar edición sin guardar cambios
 function cancelarEdicion() {
     document.getElementById('formEdicion').reset();
     document.getElementById('editId').value = '';
     document.getElementById('cardEdicion').style.display = 'none';
 }
 
-document.getElementById('btnCancelarEdicion').addEventListener('click', cancelarEdicion);
+const btnCancelarEdicion = document.getElementById('btnCancelarEdicion');
+if (btnCancelarEdicion) {
+    btnCancelarEdicion.addEventListener('click', cancelarEdicion);
+}
 
-// Eliminar miembro
 async function eliminarMiembro(id) {
     mostrarModal("Confirmar eliminación", "¿Seguro que deseas eliminar este miembro?", "confirm", async (confirmado) => {
         if (!confirmado) return;
@@ -167,76 +212,94 @@ async function eliminarMiembro(id) {
             const respuesta = await fetch(`/api/miembros/${id}`, { method: 'DELETE' });
 
             if (respuesta.ok) {
-                cargarMiembros();
+                await cargarMiembros();
+                await cargarMiembrosParaCheckboxes();
+                await actualizarContadoresDashboard();
                 mostrarModal("Eliminado", "Miembro eliminado correctamente");
             } else {
                 mostrarModal("Error", "No se pudo eliminar el miembro");
             }
         } catch (error) {
-            console.error("Error al eliminar miembro:", error);
             mostrarModal("Error de conexión", "No se pudo conectar con el servidor");
         }
     });
 }
 
-// ==================== MODULO DE PROYECTOS/EVENTOS/ACTIVIDADES ====================
+// ==================== MODULO DE PROYECTOS ====================
 
-// Variables globales para proyectos
 let proyectos = [];
 let miembrosParaProyectos = [];
 
-// Cargar miembros desde el servidor para los checkboxes
 async function cargarMiembrosParaCheckboxes() {
     try {
         const response = await fetch('/api/miembros');
+        
         if (response.ok) {
             miembrosParaProyectos = await response.json();
             renderCheckboxesParticipantes();
+            renderCheckboxesEdicionParticipantesEmpty();
         } else {
-            document.getElementById('participantesCheckboxes').innerHTML = 
-                '<p class="empty-message" style="color: red;">Error al cargar miembros</p>';
+            const container = document.getElementById('participantesCheckboxes');
+            if (container) {
+                container.innerHTML = '<p class="text-center text-red-500 py-4">Error al cargar miembros</p>';
+            }
         }
     } catch (error) {
-        console.error('Error cargando miembros:', error);
-        document.getElementById('participantesCheckboxes').innerHTML = 
-            '<p class="empty-message" style="color: red;">No se pudo conectar con el servidor</p>';
+        const container = document.getElementById('participantesCheckboxes');
+        if (container) {
+            container.innerHTML = '<p class="text-center text-red-500 py-4">No se pudo conectar con el servidor</p>';
+        }
     }
 }
 
-// Renderizar checkboxes de participantes
 function renderCheckboxesParticipantes() {
     const container = document.getElementById('participantesCheckboxes');
     
+    if (!container) return;
+    
     if (!miembrosParaProyectos || miembrosParaProyectos.length === 0) {
         container.innerHTML = `
-            <div style="text-align: center; padding: 20px;">
-                <p class="empty-message">No hay miembros registrados.</p>
-                <p style="font-size: 0.8rem; color: #64748b;">Registra miembros primero en el formulario superior.</p>
+            <div class="text-center py-8">
+                <p class="text-slate-500 italic">No hay miembros registrados.</p>
+                <p class="text-xs text-slate-400 mt-2">Registra miembros primero en la sección de Miembros.</p>
             </div>
         `;
         return;
     }
     
     container.innerHTML = miembrosParaProyectos.map(miembro => `
-        <div class="checkbox-item">
-            <input type="checkbox" id="miembro_${miembro.id}" value="${miembro.id}" class="participante-checkbox">
-            <label for="miembro_${miembro.id}">
-                ${escapeHtml(miembro.nombre)}
-                <span class="rol-badge">${escapeHtml(miembro.rol)}</span>
-                <span style="font-size: 0.7rem; color: #94a3b8;"> ${escapeHtml(miembro.correo)}</span>
+        <div class="checkbox-item flex items-center p-3 bg-white rounded-lg border border-slate-200 hover:bg-blue-50 hover:border-blue-300 transition cursor-pointer mb-2">
+            <input type="checkbox" id="miembro_${miembro.id}" value="${miembro.id}" class="participante-checkbox w-5 h-5 text-blue-600 rounded mr-3">
+            <label for="miembro_${miembro.id}" class="flex-1 cursor-pointer">
+                <span class="font-medium text-slate-700">${escapeHtml(miembro.nombre)}</span>
+                <span class="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full ml-2">${escapeHtml(miembro.rol)}</span>
+                <span class="text-xs text-slate-400 ml-2">${escapeHtml(miembro.correo)}</span>
             </label>
         </div>
     `).join('');
 }
 
-// Obtener lista completa de participantes seleccionados
+function renderCheckboxesEdicionParticipantesEmpty() {
+    const container = document.getElementById('editParticipantesCheckboxes');
+    if (container && miembrosParaProyectos && miembrosParaProyectos.length > 0) {
+        container.innerHTML = miembrosParaProyectos.map(miembro => `
+            <div class="checkbox-item flex items-center p-3 bg-white rounded-lg border border-slate-200 hover:bg-blue-50 transition cursor-pointer mb-2">
+                <input type="checkbox" id="edit_miembro_${miembro.id}" value="${miembro.id}" class="edit-participante-checkbox w-5 h-5 text-blue-600 rounded mr-3">
+                <label for="edit_miembro_${miembro.id}" class="flex-1 cursor-pointer">
+                    <span class="font-medium text-slate-700">${escapeHtml(miembro.nombre)}</span>
+                    <span class="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full ml-2">${escapeHtml(miembro.rol)}</span>
+                </label>
+            </div>
+        `).join('');
+    }
+}
+
 function getParticipantesSeleccionados() {
     const checkboxes = document.querySelectorAll('.participante-checkbox:checked');
     const idsSeleccionados = Array.from(checkboxes).map(cb => parseInt(cb.value));
     return miembrosParaProyectos.filter(miembro => idsSeleccionados.includes(miembro.id));
 }
 
-// Registrar nuevo proyecto/evento/actividad
 async function registrarProyecto(event) {
     event.preventDefault();
     
@@ -246,29 +309,28 @@ async function registrarProyecto(event) {
     const descripcion = document.getElementById('proyectoDescripcion').value.trim();
     const participantes = getParticipantesSeleccionados();
     
-    // Validaciones
     if (!nombre) {
-        mostrarModal('Error de validacion', 'Por favor ingresa el nombre del proyecto/evento.');
+        mostrarModal('Error de validación', 'Por favor ingresa el nombre del proyecto/evento.');
         return;
     }
     
     if (!tipo) {
-        mostrarModal('Error de validacion', 'Por favor selecciona un tipo.');
+        mostrarModal('Error de validación', 'Por favor selecciona un tipo.');
         return;
     }
     
     if (!fecha) {
-        mostrarModal('Error de validacion', 'Por favor ingresa la fecha o periodo.');
+        mostrarModal('Error de validación', 'Por favor ingresa la fecha o periodo.');
         return;
     }
     
     if (!descripcion) {
-        mostrarModal('Error de validacion', 'Por favor ingresa una descripcion breve.');
+        mostrarModal('Error de validación', 'Por favor ingresa una descripción breve.');
         return;
     }
     
     if (participantes.length === 0) {
-        mostrarModal('Error de validacion', 'Debes seleccionar al menos un participante inicial.');
+        mostrarModal('Error de validación', 'Debes seleccionar al menos un participante inicial.');
         return;
     }
     
@@ -288,31 +350,20 @@ async function registrarProyecto(event) {
         });
         
         if (response.ok) {
-            const guardado = await response.json();
-            mostrarModal('Exito', `${tipo} "${nombre}" registrado correctamente con ${participantes.length} participante(s).`);
-            
-            // Resetear formulario
+            mostrarModal('Éxito', `${tipo} "${nombre}" registrado correctamente con ${participantes.length} participante(s).`);
             document.getElementById('formProyecto').reset();
-            
-            // Desmarcar todos los checkboxes
             document.querySelectorAll('.participante-checkbox').forEach(cb => cb.checked = false);
-            
-            // Recargar lista de proyectos
             await cargarProyectos();
-            
-            // Recargar checkboxes
-            await cargarMiembrosParaCheckboxes();
+            await actualizarContadoresDashboard();
         } else {
             const error = await response.json();
             mostrarModal('Error', error.error || 'No se pudo registrar el proyecto.');
         }
     } catch (error) {
-        console.error('Error registrando proyecto:', error);
-        mostrarModal('Error de conexion', 'No se pudo conectar con el servidor.');
+        mostrarModal('Error de conexión', 'No se pudo conectar con el servidor.');
     }
 }
 
-// Cargar todos los proyectos desde el backend
 async function cargarProyectos() {
     try {
         const response = await fetch('/api/proyectos');
@@ -320,68 +371,76 @@ async function cargarProyectos() {
             proyectos = await response.json();
             renderListaProyectos();
         } else {
-            document.getElementById('listaProyectos').innerHTML = 
-                '<p class="empty-message" style="color: red;">Error al cargar proyectos</p>';
+            const listaProyectos = document.getElementById('listaProyectos');
+            if (listaProyectos) {
+                listaProyectos.innerHTML = '<p class="text-center text-red-500 py-8 italic">Error al cargar proyectos</p>';
+            }
         }
     } catch (error) {
-        console.error('Error cargando proyectos:', error);
-        document.getElementById('listaProyectos').innerHTML = 
-            '<p class="empty-message" style="color: red;">No se pudo conectar con el servidor</p>';
+        const listaProyectos = document.getElementById('listaProyectos');
+        if (listaProyectos) {
+            listaProyectos.innerHTML = '<p class="text-center text-red-500 py-8 italic">No se pudo conectar con el servidor</p>';
+        }
     }
 }
 
-// Renderizar la lista de proyectos en tarjetas
 function renderListaProyectos() {
     const container = document.getElementById('listaProyectos');
     
+    if (!container) return;
+    
     if (!proyectos || proyectos.length === 0) {
-        container.innerHTML = '<p class="empty-message">No hay proyectos, eventos o actividades registrados aun. Crea el primero usando el formulario!</p>';
+        container.innerHTML = '<p class="text-center text-slate-500 italic py-8">No hay proyectos registrados aún. ¡Crea el primero!</p>';
         return;
     }
     
-    // Ordenar por id (mas reciente primero)
     const proyectosOrdenados = [...proyectos].reverse();
     
     container.innerHTML = proyectosOrdenados.map(proyecto => {
         return `
-            <div class="proyecto-card">
-                <h3>${getIconoPorTipo(proyecto.tipo)} ${escapeHtml(proyecto.nombre)}</h3>
-                <div class="proyecto-tipo">${escapeHtml(proyecto.tipo)}</div>
-                <div class="proyecto-fecha">Fecha: ${escapeHtml(proyecto.fecha)}</div>
-                <div class="proyecto-descripcion">${escapeHtml(proyecto.descripcion)}</div>
-                <div class="proyecto-participantes">
-                    <h4>Participantes (${proyecto.participantes.length})</h4>
-                    ${proyecto.participantes.map(p => 
-                        `<span class="participante-tag">${escapeHtml(p.nombre)} (${escapeHtml(p.rol)})</span>`
-                    ).join('')}
+            <div class="proyecto-card bg-gradient-to-br from-white to-slate-50 rounded-xl p-5 shadow-md hover:shadow-xl transition border-l-4 border-blue-500">
+                <div class="flex justify-between items-start mb-3">
+                    <h3 class="text-lg font-bold text-blue-900">${getIconoPorTipo(proyecto.tipo)} ${escapeHtml(proyecto.nombre)}</h3>
+                    <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">${escapeHtml(proyecto.tipo)}</span>
                 </div>
-                <div class="proyecto-acciones">
-                    <button class="btn-edit" onclick="editarProyecto(${proyecto.id})">Editar</button>
-                    <button class="btn-delete" onclick="eliminarProyecto(${proyecto.id})">Eliminar</button>
+                <p class="text-sm text-slate-500 mb-2">📅 ${escapeHtml(proyecto.fecha)}</p>
+                <p class="text-slate-600 text-sm mb-3">${escapeHtml(proyecto.descripcion)}</p>
+                
+                <div class="bg-slate-100 rounded-lg p-3 mb-3">
+                    <p class="text-xs font-semibold text-slate-600 mb-2">👥 Participantes (${proyecto.participantes.length})</p>
+                    <div class="flex flex-wrap gap-1">
+                        ${proyecto.participantes.map(p => `
+                            <span class="text-xs bg-white px-2 py-1 rounded-full shadow-sm">${escapeHtml(p.nombre)}</span>
+                        `).join('')}
+                    </div>
                 </div>
-                <div style="margin-top: 12px; font-size: 0.7rem; color: #94a3b8; text-align: right;">
-                    ID: ${proyecto.id}
+                
+                <div class="flex gap-2">
+                    <button onclick="editarProyecto(${proyecto.id})" class="bg-teal-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-teal-600 transition">
+                        Editar
+                    </button>
+                    <button onclick="eliminarProyecto(${proyecto.id})" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition">
+                        Eliminar
+                    </button>
                 </div>
             </div>
         `;
     }).join('');
 }
 
-// Helper: obtener icono segun tipo
 function getIconoPorTipo(tipo) {
     const iconos = {
-        'Proyecto': '📁',
-        'Competencia': '🏆',
-        'Evento': '🎉',
-        'Actividad': '📝',
-        'Hackathon': '💻',
-        'Feria': '🎪',
-        'Prototipo': '🔧'
+        'Proyecto': '',
+        'Competencia': '',
+        'Evento': '',
+        'Actividad': '',
+        'Hackathon': '',
+        'Feria': '',
+        'Prototipo': ''
     };
-    return iconos[tipo] || '📌';
+    return iconos[tipo] || '';
 }
 
-// Helper: escapar HTML
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -391,9 +450,10 @@ function escapeHtml(text) {
 
 // ==================== FUNCIONES PARA EDITAR PROYECTOS ====================
 
-// Mostrar formulario de edición con datos del proyecto
 async function editarProyecto(id) {
     try {
+        await cargarMiembrosParaCheckboxes();
+        
         const respuesta = await fetch(`/api/proyectos/${id}`);
         const proyecto = await respuesta.json();
 
@@ -408,28 +468,20 @@ async function editarProyecto(id) {
         document.getElementById('editProyectoFecha').value = proyecto.fecha;
         document.getElementById('editProyectoDescripcion').value = proyecto.descripcion;
 
-        // Marcar los participantes actuales
         renderCheckboxesEdicionParticipantes(proyecto.participantes);
-
-        document.getElementById('cardEdicionProyecto').style.display = 'block';
-        // Scroll to the edit form
-        document.getElementById('cardEdicionProyecto').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('cardEdicionProyecto').style.display = 'flex';
     } catch (error) {
-        console.error("Error al cargar proyecto:", error);
         mostrarModal("Error", "No se pudo cargar el proyecto");
     }
 }
 
-// Renderizar checkboxes de participantes para edición
 function renderCheckboxesEdicionParticipantes(participantesActuales) {
     const container = document.getElementById('editParticipantesCheckboxes');
     
+    if (!container) return;
+    
     if (!miembrosParaProyectos || miembrosParaProyectos.length === 0) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 20px;">
-                <p class="empty-message">No hay miembros registrados.</p>
-            </div>
-        `;
+        container.innerHTML = `<div class="text-center py-8"><p class="text-slate-500 italic">No hay miembros registrados.</p></div>`;
         return;
     }
     
@@ -438,79 +490,78 @@ function renderCheckboxesEdicionParticipantes(participantesActuales) {
     container.innerHTML = miembrosParaProyectos.map(miembro => {
         const checked = idsParticipantes.includes(miembro.id) ? 'checked' : '';
         return `
-            <div class="checkbox-item">
-                <input type="checkbox" id="edit_miembro_${miembro.id}" value="${miembro.id}" class="edit-participante-checkbox" ${checked}>
-                <label for="edit_miembro_${miembro.id}">
-                    ${escapeHtml(miembro.nombre)}
-                    <span class="rol-badge">${escapeHtml(miembro.rol)}</span>
-                    <span style="font-size: 0.7rem; color: #94a3b8;"> ${escapeHtml(miembro.correo)}</span>
+            <div class="checkbox-item flex items-center p-3 bg-white rounded-lg border border-slate-200 hover:bg-blue-50 transition cursor-pointer mb-2">
+                <input type="checkbox" id="edit_miembro_${miembro.id}" value="${miembro.id}" class="edit-participante-checkbox w-5 h-5 text-blue-600 rounded mr-3" ${checked}>
+                <label for="edit_miembro_${miembro.id}" class="flex-1 cursor-pointer">
+                    <span class="font-medium text-slate-700">${escapeHtml(miembro.nombre)}</span>
+                    <span class="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full ml-2">${escapeHtml(miembro.rol)}</span>
                 </label>
             </div>
         `;
     }).join('');
 }
 
-// Obtener lista completa de participantes seleccionados en edición
 function getParticipantesSeleccionadosEdicion() {
     const checkboxes = document.querySelectorAll('.edit-participante-checkbox:checked');
     const idsSeleccionados = Array.from(checkboxes).map(cb => parseInt(cb.value));
     return miembrosParaProyectos.filter(miembro => idsSeleccionados.includes(miembro.id));
 }
 
-// Guardar cambios desde el formulario de edición de proyecto
-document.getElementById('formEdicionProyecto').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const id = document.getElementById('editProyectoId').value;
-    const nombre = document.getElementById('editProyectoNombre').value.trim();
-    const tipo = document.getElementById('editProyectoTipo').value;
-    const fecha = document.getElementById('editProyectoFecha').value.trim();
-    const descripcion = document.getElementById('editProyectoDescripcion').value.trim();
-    const participantes = getParticipantesSeleccionadosEdicion();
+const formEdicionProyecto = document.getElementById('formEdicionProyecto');
+if (formEdicionProyecto) {
+    formEdicionProyecto.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('editProyectoId').value;
+        const nombre = document.getElementById('editProyectoNombre').value.trim();
+        const tipo = document.getElementById('editProyectoTipo').value;
+        const fecha = document.getElementById('editProyectoFecha').value.trim();
+        const descripcion = document.getElementById('editProyectoDescripcion').value.trim();
+        const participantes = getParticipantesSeleccionadosEdicion();
 
-    // Validaciones
-    if (!nombre || !tipo || !fecha || !descripcion) {
-        mostrarModal('Error de validación', 'Todos los campos son obligatorios.');
-        return;
-    }
-    
-    if (participantes.length === 0) {
-        mostrarModal('Error de validación', 'Debes seleccionar al menos un participante.');
-        return;
-    }
-
-    try {
-        const respuesta = await fetch(`/api/proyectos/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre, tipo, fecha, descripcion, participantes })
-        });
-
-        if (respuesta.ok) {
-            cancelarEdicionProyecto();
-            cargarProyectos();
-            mostrarModal("Actualización", `${tipo} "${nombre}" actualizado correctamente`);
-        } else {
-            const error = await respuesta.json();
-            mostrarModal("Error", error.error || "No se pudo actualizar el proyecto");
+        if (!nombre || !tipo || !fecha || !descripcion) {
+            mostrarModal('Error de validación', 'Todos los campos son obligatorios.');
+            return;
         }
-    } catch (error) {
-        console.error("Error al editar proyecto:", error);
-        mostrarModal("Error de conexión", "No se pudo conectar con el servidor");
-    }
-});
+        
+        if (participantes.length === 0) {
+            mostrarModal('Error de validación', 'Debes seleccionar al menos un participante.');
+            return;
+        }
 
-// Cancelar edición de proyecto sin guardar cambios
+        try {
+            const respuesta = await fetch(`/api/proyectos/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, tipo, fecha, descripcion, participantes })
+            });
+
+            if (respuesta.ok) {
+                cancelarEdicionProyecto();
+                await cargarProyectos();
+                await actualizarContadoresDashboard();
+                mostrarModal("Actualización", `${tipo} "${nombre}" actualizado correctamente`);
+            } else {
+                const error = await respuesta.json();
+                mostrarModal("Error", error.error || "No se pudo actualizar el proyecto");
+            }
+        } catch (error) {
+            mostrarModal("Error de conexión", "No se pudo conectar con el servidor");
+        }
+    });
+}
+
 function cancelarEdicionProyecto() {
     document.getElementById('formEdicionProyecto').reset();
     document.getElementById('editProyectoId').value = '';
     document.getElementById('cardEdicionProyecto').style.display = 'none';
 }
 
-document.getElementById('btnCancelarEdicionProyecto').addEventListener('click', cancelarEdicionProyecto);
+const btnCancelarEdicionProyecto = document.getElementById('btnCancelarEdicionProyecto');
+if (btnCancelarEdicionProyecto) {
+    btnCancelarEdicionProyecto.addEventListener('click', cancelarEdicionProyecto);
+}
 
-// Eliminar proyecto
 async function eliminarProyecto(id) {
-    // Primero obtener el proyecto para mostrar su nombre en la confirmación
     try {
         const respuesta = await fetch(`/api/proyectos/${id}`);
         const proyecto = await respuesta.json();
@@ -520,45 +571,469 @@ async function eliminarProyecto(id) {
             return;
         }
 
-        mostrarModal(`${proyecto.tipo}: ${proyecto.nombre}`, `¿Seguro que deseas eliminar "${proyecto.nombre}"? Esta acción no se puede deshacer.`, "confirm", async (confirmado) => {
+        mostrarModal(`${proyecto.tipo}: ${proyecto.nombre}`, `¿Seguro que deseas eliminar "${proyecto.nombre}"?`, "confirm", async (confirmado) => {
             if (!confirmado) return;
 
             try {
                 const respuesta = await fetch(`/api/proyectos/${id}`, { method: 'DELETE' });
 
                 if (respuesta.ok) {
-                    cargarProyectos();
+                    await cargarProyectos();
+                    await actualizarContadoresDashboard();
                     mostrarModal("Eliminado", `${proyecto.tipo} "${proyecto.nombre}" eliminado correctamente`);
                 } else {
                     mostrarModal("Error", "No se pudo eliminar el proyecto");
                 }
             } catch (error) {
-                console.error("Error al eliminar proyecto:", error);
                 mostrarModal("Error de conexión", "No se pudo conectar con el servidor");
             }
         });
     } catch (error) {
-        console.error("Error al obtener proyecto para eliminación:", error);
         mostrarModal("Error", "No se pudo obtener información del proyecto");
     }
 }
 
-// Inicializar el modulo de proyectos
 function inicializarModuloProyectos() {
+    const container = document.getElementById('participantesCheckboxes');
+    if (!container) return;
+    
     cargarMiembrosParaCheckboxes();
     cargarProyectos();
     
     const formProyecto = document.getElementById('formProyecto');
     if (formProyecto) {
+        formProyecto.removeEventListener('submit', registrarProyecto);
         formProyecto.addEventListener('submit', registrarProyecto);
     }
 }
 
-// Inicializar cuando el DOM este listo
+// ==================== MODULO DE EVENTOS ====================
+
+let eventos = [];
+
+async function cargarMiembrosParaEventos() {
+    try {
+        const response = await fetch('/api/miembros');
+        if (response.ok) {
+            const miembros = await response.json();
+            renderCheckboxesEventos(miembros);
+        } else {
+            const container = document.getElementById('eventoParticipantesCheckboxes');
+            if (container) {
+                container.innerHTML = '<p class="text-center text-red-500 py-4">Error al cargar miembros</p>';
+            }
+        }
+    } catch (error) {
+        const container = document.getElementById('eventoParticipantesCheckboxes');
+        if (container) {
+            container.innerHTML = '<p class="text-center text-red-500 py-4">No se pudo conectar con el servidor</p>';
+        }
+    }
+}
+
+function renderCheckboxesEventos(miembros) {
+    const container = document.getElementById('eventoParticipantesCheckboxes');
+    
+    if (!container) return;
+    
+    if (!miembros || miembros.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8">
+                <p class="text-slate-500 italic">No hay miembros registrados.</p>
+                <p class="text-xs text-slate-400 mt-2">Registra miembros primero en la sección de Miembros.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = miembros.map(miembro => `
+        <div class="checkbox-item flex items-center p-3 bg-white rounded-lg border border-slate-200 hover:bg-pink-50 hover:border-pink-300 transition cursor-pointer mb-2">
+            <input type="checkbox" id="evento_miembro_${miembro.id}" value="${miembro.id}" class="evento-participante-checkbox w-5 h-5 text-pink-600 rounded mr-3">
+            <label for="evento_miembro_${miembro.id}" class="flex-1 cursor-pointer">
+                <span class="font-medium text-slate-700">${escapeHtml(miembro.nombre)}</span>
+                <span class="text-xs text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full ml-2">${escapeHtml(miembro.rol)}</span>
+                <span class="text-xs text-slate-400 ml-2">${escapeHtml(miembro.correo)}</span>
+            </label>
+        </div>
+    `).join('');
+}
+
+async function getAsistentesSeleccionadosEvento() {
+    const checkboxes = document.querySelectorAll('.evento-participante-checkbox:checked');
+    const idsSeleccionados = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    
+    const response = await fetch('/api/miembros');
+    const miembros = await response.json();
+    return miembros.filter(miembro => idsSeleccionados.includes(miembro.id));
+}
+
+async function registrarEvento(event) {
+    event.preventDefault();
+    
+    const nombre = document.getElementById('eventoNombre').value.trim();
+    const ubicacion = document.getElementById('eventoUbicacion').value.trim();
+    const fecha = document.getElementById('eventoFecha').value;
+    const hora = document.getElementById('eventoHora').value;
+    const tipo = document.getElementById('eventoTipo').value;
+    const descripcion = document.getElementById('eventoDescripcion').value.trim();
+    const asistentes = await getAsistentesSeleccionadosEvento();
+    
+    if (!nombre || !ubicacion || !fecha || !hora || !tipo || !descripcion) {
+        mostrarModal('Error de validación', 'Todos los campos son obligatorios.');
+        return;
+    }
+    
+    if (asistentes.length === 0) {
+        mostrarModal('Error de validación', 'Debes seleccionar al menos un asistente.');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/eventos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, ubicacion, fecha, hora, tipo, descripcion, asistentes })
+        });
+        
+        if (response.ok) {
+            mostrarModal('Éxito', `Evento "${nombre}" registrado correctamente con ${asistentes.length} asistente(s).`);
+            document.getElementById('formEvento').reset();
+            document.querySelectorAll('.evento-participante-checkbox').forEach(cb => cb.checked = false);
+            await cargarEventos();
+            await actualizarContadoresDashboard();
+        } else {
+            const error = await response.json();
+            mostrarModal('Error', error.error || 'No se pudo registrar el evento.');
+        }
+    } catch (error) {
+        mostrarModal('Error de conexión', 'No se pudo conectar con el servidor.');
+    }
+}
+
+async function cargarEventos() {
+    try {
+        const response = await fetch('/api/eventos');
+        if (response.ok) {
+            eventos = await response.json();
+            renderListaEventos();
+        } else {
+            const container = document.getElementById('listaEventos');
+            if (container) {
+                container.innerHTML = '<p class="text-center text-red-500 py-8 italic">Error al cargar eventos</p>';
+            }
+        }
+    } catch (error) {
+        const container = document.getElementById('listaEventos');
+        if (container) {
+            container.innerHTML = '<p class="text-center text-red-500 py-8 italic">No se pudo conectar con el servidor</p>';
+        }
+    }
+}
+
+function renderListaEventos() {
+    const container = document.getElementById('listaEventos');
+    
+    if (!container) return;
+    
+    if (!eventos || eventos.length === 0) {
+        container.innerHTML = '<p class="text-center text-slate-500 italic py-8">No hay eventos registrados aún. ¡Crea el primero!</p>';
+        return;
+    }
+    
+    container.innerHTML = eventos.map(evento => {
+        const fechaObj = new Date(evento.fecha);
+        const fechaFormateada = fechaObj.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        return `
+            <div class="evento-card bg-gradient-to-br from-white to-pink-50 rounded-xl p-5 shadow-md hover:shadow-xl transition border-l-4 border-pink-500">
+                <div class="flex justify-between items-start mb-3">
+                    <h3 class="text-lg font-bold text-pink-800">${getIconoPorTipoEvento(evento.tipo)} ${escapeHtml(evento.nombre)}</h3>
+                    <span class="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full">${escapeHtml(evento.tipo)}</span>
+                </div>
+                <div class="space-y-2 mb-3">
+                    <p class="text-sm text-slate-600 flex items-center gap-2">
+                        <span>📅</span> ${fechaFormateada} - ${evento.hora}
+                    </p>
+                    <p class="text-sm text-slate-600 flex items-center gap-2">
+                        <span>📍</span> ${escapeHtml(evento.ubicacion)}
+                    </p>
+                    <p class="text-slate-600 text-sm">${escapeHtml(evento.descripcion)}</p>
+                </div>
+                
+                <div class="bg-pink-100 rounded-lg p-3 mb-3">
+                    <p class="text-xs font-semibold text-pink-700 mb-2">👥 Asistentes (${evento.asistentes.length})</p>
+                    <div class="flex flex-wrap gap-1">
+                        ${evento.asistentes.map(a => `
+                            <span class="text-xs bg-white px-2 py-1 rounded-full shadow-sm">${escapeHtml(a.nombre)}</span>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div class="flex gap-2">
+                    <button onclick="editarEvento(${evento.id})" class="bg-teal-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-teal-600 transition">
+                        Editar
+                    </button>
+                    <button onclick="eliminarEvento(${evento.id})" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function getIconoPorTipoEvento(tipo) {
+    const iconos = {
+        'Conferencia': '',
+        'Taller': '',
+        'Webinar': '',
+        'Reunión': '',
+        'Capacitación': '',
+        'Social': ''
+    };
+    return iconos[tipo] || '';
+}
+
+async function editarEvento(id) {
+    try {
+        const respuesta = await fetch(`/api/eventos/${id}`);
+        const evento = await respuesta.json();
+
+        if (!respuesta.ok) {
+            mostrarModal("Error", "Evento no encontrado");
+            return;
+        }
+        
+        const responseMiembros = await fetch('/api/miembros');
+        const miembros = await responseMiembros.json();
+        
+        document.getElementById('editEventoId').value = evento.id;
+        document.getElementById('editEventoNombre').value = evento.nombre;
+        document.getElementById('editEventoUbicacion').value = evento.ubicacion;
+        document.getElementById('editEventoFecha').value = evento.fecha;
+        document.getElementById('editEventoHora').value = evento.hora;
+        document.getElementById('editEventoTipo').value = evento.tipo;
+        document.getElementById('editEventoDescripcion').value = evento.descripcion;
+        
+        // Limpiar el contenedor ANTES de renderizar
+        const container = document.getElementById('editEventoParticipantesCheckboxes');
+        if (container) {
+            container.innerHTML = '';
+        }
+        
+        renderCheckboxesEdicionEventos(miembros, evento.asistentes);
+        document.getElementById('cardEdicionEvento').style.display = 'flex';
+    } catch (error) {
+        mostrarModal("Error", "No se pudo cargar el evento");
+    }
+}
+
+function renderCheckboxesEdicionEventos(miembros, asistentesActuales) {
+    const container = document.getElementById('editEventoParticipantesCheckboxes');
+    
+    if (!container) return;
+    
+    // Limpiar el contenedor antes de agregar nuevos checkboxes
+    container.innerHTML = '';
+    
+    if (!miembros || miembros.length === 0) {
+        container.innerHTML = `<div class="text-center py-8"><p class="text-slate-500 italic">No hay miembros registrados.</p></div>`;
+        return;
+    }
+    
+    const idsAsistentes = asistentesActuales.map(a => a.id);
+    
+    const html = miembros.map(miembro => {
+        const checked = idsAsistentes.includes(miembro.id) ? 'checked' : '';
+        return `
+            <div class="checkbox-item flex items-center p-3 bg-white rounded-lg border border-slate-200 hover:bg-pink-50 hover:border-pink-300 transition cursor-pointer mb-2">
+                <input type="checkbox" id="edit_evento_miembro_${miembro.id}" value="${miembro.id}" class="edit-evento-participante-checkbox w-5 h-5 text-pink-600 rounded mr-3" ${checked}>
+                <label for="edit_evento_miembro_${miembro.id}" class="flex-1 cursor-pointer">
+                    <span class="font-medium text-slate-700">${escapeHtml(miembro.nombre)}</span>
+                    <span class="text-xs text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full ml-2">${escapeHtml(miembro.rol)}</span>
+                </label>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = html;
+}
+
+async function getAsistentesSeleccionadosEdicionEvento() {
+    const checkboxes = document.querySelectorAll('.edit-evento-participante-checkbox:checked');
+    const idsSeleccionados = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    
+    const response = await fetch('/api/miembros');
+    const miembros = await response.json();
+    return miembros.filter(miembro => idsSeleccionados.includes(miembro.id));
+}
+
+const formEdicionEvento = document.getElementById('formEdicionEvento');
+if (formEdicionEvento) {
+    formEdicionEvento.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const id = parseInt(document.getElementById('editEventoId').value);
+        const nombre = document.getElementById('editEventoNombre').value.trim();
+        const ubicacion = document.getElementById('editEventoUbicacion').value.trim();
+        const fecha = document.getElementById('editEventoFecha').value;
+        const hora = document.getElementById('editEventoHora').value;
+        const tipo = document.getElementById('editEventoTipo').value;
+        const descripcion = document.getElementById('editEventoDescripcion').value.trim();
+        const asistentes = await getAsistentesSeleccionadosEdicionEvento();
+        
+        if (!nombre || !ubicacion || !fecha || !hora || !tipo || !descripcion) {
+            mostrarModal('Error de validación', 'Todos los campos son obligatorios.');
+            return;
+        }
+        
+        if (asistentes.length === 0) {
+            mostrarModal('Error de validación', 'Debes seleccionar al menos un asistente.');
+            return;
+        }
+
+        try {
+            const respuesta = await fetch(`/api/eventos/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, ubicacion, fecha, hora, tipo, descripcion, asistentes })
+            });
+
+            if (respuesta.ok) {
+                cerrarEdicionEvento();
+                await cargarEventos();
+                await actualizarContadoresDashboard();
+                mostrarModal("Actualización", `Evento "${nombre}" actualizado correctamente`);
+            } else {
+                const error = await respuesta.json();
+                mostrarModal("Error", error.error || "No se pudo actualizar el evento");
+            }
+        } catch (error) {
+            mostrarModal("Error de conexión", "No se pudo conectar con el servidor");
+        }
+    });
+}
+
+function cerrarEdicionEvento() {
+    document.getElementById('formEdicionEvento').reset();
+    document.getElementById('editEventoId').value = '';
+    document.getElementById('cardEdicionEvento').style.display = 'none';
+}
+
+async function eliminarEvento(id) {
+    try {
+        const respuesta = await fetch(`/api/eventos/${id}`);
+        const evento = await respuesta.json();
+        
+        if (!respuesta.ok) {
+            mostrarModal("Error", "Evento no encontrado");
+            return;
+        }
+
+        mostrarModal("Confirmar eliminación", `¿Seguro que deseas eliminar el evento "${evento.nombre}"?`, "confirm", async (confirmado) => {
+            if (!confirmado) return;
+
+            try {
+                const respuesta = await fetch(`/api/eventos/${id}`, { method: 'DELETE' });
+
+                if (respuesta.ok) {
+                    await cargarEventos();
+                    await actualizarContadoresDashboard();
+                    mostrarModal("Eliminado", `Evento "${evento.nombre}" eliminado correctamente`);
+                } else {
+                    mostrarModal("Error", "No se pudo eliminar el evento");
+                }
+            } catch (error) {
+                mostrarModal("Error de conexión", "No se pudo conectar con el servidor");
+            }
+        });
+    } catch (error) {
+        mostrarModal("Error", "No se pudo obtener información del evento");
+    }
+}
+
+function inicializarModuloEventos() {
+    cargarMiembrosParaEventos();
+    cargarEventos();
+    
+    const formEvento = document.getElementById('formEvento');
+    if (formEvento) {
+        formEvento.removeEventListener('submit', registrarEvento);
+        formEvento.addEventListener('submit', registrarEvento);
+    }
+}
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(inicializarModuloProyectos, 500);
+        setTimeout(inicializarModuloEventos, 200);
     });
 } else {
-    setTimeout(inicializarModuloProyectos, 500);
+    setTimeout(inicializarModuloEventos, 200);
+}
+
+window.cerrarEdicion = function() {
+    document.getElementById('cardEdicion').style.display = 'none';
+};
+
+window.cerrarEdicionProyecto = function() {
+    document.getElementById('cardEdicionProyecto').style.display = 'none';
+};
+
+window.cerrarEdicionEvento = cerrarEdicionEvento;
+window.editarEvento = editarEvento;
+window.eliminarEvento = eliminarEvento;
+window.actualizarContadores = actualizarContadoresDashboard;
+window.editarProyecto = editarProyecto;
+window.eliminarProyecto = eliminarProyecto;
+window.editarMiembro = editarMiembro;
+window.eliminarMiembro = eliminarMiembro;
+
+// ==================== MENÚ HAMBURGUESA ====================
+
+function initMobileMenu() {
+    const menuBtn = document.getElementById('menuBtn');
+    const menuMobile = document.getElementById('menuMobile');
+    const nav = document.querySelector('nav');
+    
+    if (!menuBtn || !menuMobile) return;
+    
+    menuBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const isOpen = menuMobile.classList.contains('show');
+        
+        if (isOpen) {
+            menuMobile.classList.remove('show');
+            nav.classList.remove('menu-open');
+        } else {
+            menuMobile.classList.add('show');
+            nav.classList.add('menu-open');
+        }
+    });
+    
+    const mobileLinks = document.querySelectorAll('#menuMobile a');
+    mobileLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            menuMobile.classList.remove('show');
+            nav.classList.remove('menu-open');
+        });
+    });
+    
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 768) {
+            menuMobile.classList.remove('show');
+            nav.classList.remove('menu-open');
+        }
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMobileMenu);
+} else {
+    initMobileMenu();
 }
