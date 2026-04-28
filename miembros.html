@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POLARIS | Miembros</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html { scroll-behavior: smooth; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .star {
+            position: fixed;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 3s infinite;
+            z-index: 0;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 0.7; transform: scale(1); }
+        }
+
+        .titulo-personalizado {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (min-width: 1024px) {
+            .titulo-personalizado {
+                justify-content: flex-start;
+            }
+        }
+
+        .texto-polaris {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            font-family: 'Orbitron', monospace;
+        }
+
+        @media (min-width: 768px) {
+            .texto-polaris {
+                font-size: 4.5rem;
+            }
+        }
+
+        .hero-transition::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(to bottom, transparent, #0a0f2a);
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0f2a, #030614);
+            position: relative;
+        }
+
+        /* Centrar cards en secciones de proyectos y eventos */
+        #proyectos-container,
+        #eventos-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            justify-items: center;
+            align-items: stretch;
+        }
+
+        @media (min-width: 768px) {
+            #proyectos-container,
+            #eventos-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            #proyectos-container,
+            #eventos-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        #proyectos-container > div,
+        #eventos-container > div {
+            width: 100%;
+            max-width: 380px;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-[#0a0f2a] via-[#0f1a3a] to-[#0a0f2a] font-sans relative overflow-x-hidden">
+
+    <!-- Estrellas generadas con JS -->
+    <div id="stars-container" class="fixed inset-0 pointer-events-none"></div>
+    <script>
+        for (let i = 0; i < 200; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
+            star.style.width = Math.random() * 3 + 'px';
+            star.style.height = star.style.width;
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 5 + 's';
+            star.style.animationDuration = Math.random() * 3 + 2 + 's';
+            document.getElementById('stars-container').appendChild(star);
+        }
+    </script>
+
+    <!-- NAVBAR -->
+    <nav class="sticky top-0 z-50 w-full">
+        <div class="bg-white/95 backdrop-blur-md shadow-lg w-full px-4 md:px-6">
+            <div class="flex justify-between items-center py-3 max-w-7xl mx-auto">
+                <div class="inline-flex items-center gap-1.5 text-xl md:text-2xl font-bold tracking-wider" style="font-family: 'Orbitron', monospace;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" stroke-width="0" class="w-5 h-5 md:w-6 md:h-6 text-blue-600">
+                        <path d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" />
+                    </svg>
+                    <a href="inicio.html" class="text-transparent bg-clip-text bg-gradient-to-r from-blue-900 to-blue-600">POLARIS</a>
+                </div>
+                
+                <button id="menuBtn" class="md:hidden flex flex-col items-center justify-center w-10 h-10 rounded-lg hover:bg-blue-50 transition z-50">
+                    <span id="barra1" class="block w-6 h-0.5 bg-slate-700 rounded-full transition-all duration-300 mb-1.5"></span>
+                    <span id="barra2" class="block w-6 h-0.5 bg-slate-700 rounded-full transition-all duration-300 mb-1.5"></span>
+                    <span id="barra3" class="block w-6 h-0.5 bg-slate-700 rounded-full transition-all duration-300"></span>
+                </button>
+                
+                <div class="hidden md:flex items-center gap-1 lg:gap-2">
+                    <a href="inicio.html" class="px-3 lg:px-4 py-2 rounded-xl font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition-all hover:-translate-y-0.5">Inicio</a>
+                    <a href="miembros.html" class="px-3 lg:px-4 py-2 rounded-xl font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition-all hover:-translate-y-0.5">Miembros</a>
+                    <a href="proyectos.html" class="px-3 lg:px-4 py-2 rounded-xl font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition-all hover:-translate-y-0.5">Proyectos</a>
+                    <a href="eventos.html" class="px-3 lg:px-4 py-2 rounded-xl font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition">Eventos</a>
+                </div>
+                
+                <div class="hidden md:flex items-center gap-3 bg-slate-100 px-4 py-2 rounded-full cursor-pointer hover:bg-slate-200 transition-all hover:scale-105">
+                    <div class="w-9 h-9 bg-gradient-to-br from-blue-900 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">P</div>
+                    <span class="font-semibold text-slate-700 text-sm">Polaris Team</span>
+                </div>
+            </div>
+            
+            <div id="menuMobile" class="md:hidden hidden border-t border-slate-100">
+                <div class="flex flex-col py-4">
+                    <a href="inicio.html" class="px-6 py-4 text-slate-700 font-semibold hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-3 border-b border-slate-50">Inicio</a>
+                    <a href="miembros.html" class="px-6 py-4 text-slate-700 font-semibold hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-3 border-b border-slate-50">Miembros</a>
+                    <a href="proyectos.html" class="px-6 py-4 text-slate-700 font-semibold hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-3">Proyectos</a>
+                    <a href="eventos.html" class="px-6 py-4 text-slate-700 font-semibold hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-3 border-b border-slate-50">Eventos</a>
+                    <div class="flex items-center gap-3 px-6 py-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-900 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">P</div>
+                        <div>
+                            <p class="font-semibold text-slate-700">Polaris Team</p>
+                            <p class="text-xs text-slate-500">Equipo de trabajo</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        
+        <!-- Título de página -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white mb-2">Gestión de Miembros</h1>
+            <p class="text-blue-200">Administra los integrantes del equipo POLARIS</p>
+        </div>
+
+        <!-- Tarjeta de estadísticas (igual que index.html) -->
+        <!-- Tarjeta de miembros totales (mismo tamaño que index, centrada) -->
+<div class="flex justify-center mb-6">
+    <div class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 text-white shadow-2xl w-full max-w-md">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-blue-200 text-sm font-semibold">MIEMBROS TOTALES</p>
+                <p class="text-4xl font-bold mt-2" id="totalMiembros">0</p>
+            </div>
+            <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Botón registrar -->
+<div class="flex justify-center mb-8">
+    <button onclick="document.getElementById('formularioPanel').classList.toggle('hidden')" 
+            class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all hover:scale-105 flex items-center gap-2 text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Registrar nuevo miembro
+    </button>
+</div>
+
+            <!-- Botón para mostrar formulario -->
+             
+
+        <!-- Panel oculto del formulario (aparece al hacer clic en el botón) -->
+        <div id="formularioPanel" class="hidden mb-8">
+            <div class="bg-white rounded-2xl p-6 md:p-8 shadow-2xl">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-blue-900">Registrar Miembro</h3>
+                </div>
+                <div class="h-0.5 bg-gradient-to-r from-blue-500 to-transparent rounded-full mb-6"></div>
+                
+                <form id="formRegistro" class="space-y-5">
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-2">Nombre completo</label>
+                        <input type="text" id="nombre" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none" placeholder="Ejemplo: Sofía Luna López" required>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-2">Correo electrónico</label>
+                        <input type="email" id="correo" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none" placeholder="ejemplo@dominio.com" required>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-2">Rol en el equipo</label>
+                        <select id="rol" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none bg-white" required>
+                            <option value="">Selecciona un rol</option>
+                            <option value="Líder">Líder</option>
+                            <option value="Participante">Participante</option>
+                            <option value="Mentor">Mentor</option>
+                            <option value="Coordinador">Coordinador</option>
+                            <option value="Colaborador">Colaborador</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-blue-900 to-blue-600 text-white font-bold py-3 rounded-xl hover:from-blue-800 hover:to-blue-700 transition-all hover:scale-[1.02] shadow-lg cursor-pointer">Registrar miembro</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabla de miembros (ARRIBA, visible siempre) -->
+        <div class="bg-white rounded-2xl p-6 md:p-8 shadow-2xl">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-blue-900">Lista de Miembros</h3>
+            </div>
+            <div class="h-0.5 bg-gradient-to-r from-green-500 to-transparent rounded-full mb-6"></div>
+            
+            <div class="overflow-x-auto rounded-xl">
+                <table class="w-full">
+                    <thead class="bg-blue-900 text-white">
+                        <tr><th class="px-4 py-3 text-left">ID</th><th class="px-4 py-3 text-left">Nombre</th><th class="px-4 py-3 text-left hidden md:table-cell">Correo</th><th class="px-4 py-3 text-left">Rol</th><th class="px-4 py-3 text-left">Acciones</th></tr>
+                    </thead>
+                    <tbody id="tableBody"><tr><td colspan="5" class="text-center py-10 text-slate-500 italic">Cargando miembros...</td</tr></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal de edición (oculto) -->
+    <div id="cardEdicion" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] hidden" onclick="if(event.target===this) cerrarEdicion()">
+        <div class="bg-white rounded-2xl p-6 md:p-8 shadow-2xl max-w-2xl w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-semibold text-blue-900">Editar miembro</h2>
+                <button onclick="cerrarEdicion()" class="text-slate-400 hover:text-red-500 text-2xl">&times;</button>
+            </div>
+            <div class="h-0.5 bg-gradient-to-r from-yellow-400 to-transparent rounded-full mb-6"></div>
+            <form id="formEdicion" class="space-y-5">
+                <input type="hidden" id="editId">
+                <div><label class="block font-semibold text-slate-700 mb-2">Nombre completo</label><input type="text" id="editNombre" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl" required></div>
+                <div><label class="block font-semibold text-slate-700 mb-2">Correo electrónico</label><input type="email" id="editCorreo" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl" required></div>
+                <div><label class="block font-semibold text-slate-700 mb-2">Rol</label><select id="editRol" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl bg-white"><option>Líder</option><option>Participante</option><option>Mentor</option><option>Coordinador</option><option>Colaborador</option></select></div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <button type="submit" class="bg-gradient-to-r from-teal-600 to-emerald-500 text-white font-bold py-3 rounded-xl hover:scale-105">Guardar cambios</button>
+                    <button type="button" onclick="cerrarEdicion()" class="bg-gradient-to-r from-red-600 to-red-500 text-white font-bold py-3 rounded-xl hover:scale-105">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="border-t border-white/10 py-6 mt-8 text-center">
+        <p class="text-white/40 text-sm">POLARIS · Instituto Tecnológico de Matamoros</p>
+    </footer>
+
+    <script>
+        const API = '/api/miembros';
+        
+        async function cargarMiembros() {
+            try {
+                const res = await fetch(API);
+                const data = await res.json();
+                document.getElementById('totalMiembros').textContent = data.length;
+                const tbody = document.getElementById('tableBody');
+                if (!data.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center p-4">Sin miembros registrados</td></tr>'; return; }
+                tbody.innerHTML = data.map(m => `
+                    <tr class="border-b border-slate-100">
+                        <td class="p-3">${m.id}</td>
+                        <td class="p-3">${m.nombre}</td>
+                        <td class="p-3 hidden md:table-cell">${m.correo}</td>
+                        <td class="p-3">${m.rol}</td>
+                        <td class="p-3">
+                            <button onclick="editar(${m.id})" class="bg-teal-600 text-white px-3 py-1 rounded-lg text-xs mr-2">Editar</button>
+                            <button onclick="eliminar(${m.id})" class="bg-red-600 text-white px-3 py-1 rounded-lg text-xs">Eliminar</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch(e) { console.error(e); }
+        }
+
+        document.getElementById('formRegistro')?.addEventListener('submit', async(e) => {
+            e.preventDefault();
+            await fetch(API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nombre: document.getElementById('nombre').value,
+                    correo: document.getElementById('correo').value,
+                    rol: document.getElementById('rol').value
+                })
+            });
+            cargarMiembros();
+            e.target.reset();
+            document.getElementById('formularioPanel').classList.add('hidden');
+        });
+
+        window.editar = async (id) => {
+            const res = await fetch(API);
+            const data = await res.json();
+            const m = data.find(x => x.id === id);
+            document.getElementById('editId').value = m.id;
+            document.getElementById('editNombre').value = m.nombre;
+            document.getElementById('editCorreo').value = m.correo;
+            document.getElementById('editRol').value = m.rol;
+            document.getElementById('cardEdicion').style.display = 'flex';
+        };
+
+        document.getElementById('formEdicion')?.addEventListener('submit', async(e) => {
+            e.preventDefault();
+            await fetch(`${API}/${document.getElementById('editId').value}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nombre: document.getElementById('editNombre').value,
+                    correo: document.getElementById('editCorreo').value,
+                    rol: document.getElementById('editRol').value
+                })
+            });
+            cerrarEdicion();
+            cargarMiembros();
+        });
+
+        window.eliminar = async (id) => {
+            if (confirm('¿Eliminar este miembro?')) {
+                await fetch(`${API}/${id}`, { method: 'DELETE' });
+                cargarMiembros();
+            }
+        };
+
+        window.cerrarEdicion = () => document.getElementById('cardEdicion').style.display = 'none';
+        
+        cargarMiembros();
+    </script>
+</body>
+</html>

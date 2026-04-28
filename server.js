@@ -328,7 +328,7 @@ app.delete('/api/eventos/:id', (req, res) => {
 
 // RUTA: Página principal
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'inicio.html'));
 });
 
 // Iniciar servidor

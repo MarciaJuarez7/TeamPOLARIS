@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POLARIS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html { scroll-behavior: smooth; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .star {
+            position: fixed;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 3s infinite;
+            z-index: 0;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 0.7; transform: scale(1); }
+        }
+
+        .titulo-personalizado {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (min-width: 1024px) {
+            .titulo-personalizado {
+                justify-content: flex-start;
+            }
+        }
+
+        .texto-polaris {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            font-family: 'Orbitron', monospace;
+        }
+
+        @media (min-width: 768px) {
+            .texto-polaris {
+                font-size: 4.5rem;
+            }
+        }
+
+        .hero-transition::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(to bottom, transparent, #0a0f2a);
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0f2a, #030614);
+            position: relative;
+        }
+
+        /* Centrar cards en secciones de proyectos y eventos */
+        #proyectos-container,
+        #eventos-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            justify-items: center;
+            align-items: stretch;
+        }
+
+        @media (min-width: 768px) {
+            #proyectos-container,
+            #eventos-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            #proyectos-container,
+            #eventos-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        #proyectos-container > div,
+        #eventos-container > div {
+            width: 100%;
+            max-width: 380px;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-[#0a0f2a] via-[#0f1a3a] to-[#0a0f2a] font-sans relative overflow-x-hidden">
+
+    <!-- Estrellas generadas con JS -->
+    <div id="stars-container" class="fixed inset-0 pointer-events-none"></div>
+    <script>
+        for (let i = 0; i < 200; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
+            star.style.width = Math.random() * 3 + 'px';
+            star.style.height = star.style.width;
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 5 + 's';
+            star.style.animationDuration = Math.random() * 3 + 2 + 's';
+            document.getElementById('stars-container').appendChild(star);
+        }
+    </script>
+
+    <!-- NAVBAR -->
+    <nav class="sticky top-0 z-50 w-full">
+        <div class="bg-white/95 backdrop-blur-md shadow-lg w-full px-4 md:px-6">
+            <div class="flex justify-between items-center py-3 max-w-7xl mx-auto">
+                <div class="inline-flex items-center gap-1.5 text-xl md:text-2xl font-bold tracking-wider" style="font-family: 'Orbitron', monospace;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" stroke-width="0" class="w-5 h-5 md:w-6 md:h-6 text-blue-600">
+                        <path d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" />
+                    </svg>
+                    <a href="#inicio.html" class="text-transparent bg-clip-text bg-gradient-to-r from-blue-900 to-blue-600">POLARIS</a>
+                </div>
+                
+                <button id="menuBtn" class="md:hidden flex flex-col items-center justify-center w-10 h-10 rounded-lg hover:bg-blue-50 transition z-50">
+                    <span id="barra1" class="block w-6 h-0.5 bg-slate-700 rounded-full transition-all duration-300 mb-1.5"></span>
+                    <span id="barra2" class="block w-6 h-0.5 bg-slate-700 rounded-full transition-all duration-300 mb-1.5"></span>
+                    <span id="barra3" class="block w-6 h-0.5 bg-slate-700 rounded-full transition-all duration-300"></span>
+                </button>
+                
+                <div class="hidden md:flex items-center gap-1 lg:gap-2">
+                    <a href="#inicio.html" class="px-3 lg:px-4 py-2 rounded-xl font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition-all hover:-translate-y-0.5">Inicio</a>
+                    <a href="#seccion_miembros" class="px-3 lg:px-4 py-2 rounded-xl font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition-all hover:-translate-y-0.5">Miembros</a>
+                    <a href="#seccion_proyectos" class="px-3 lg:px-4 py-2 rounded-xl font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition-all hover:-translate-y-0.5">Proyectos</a>
+                    <a href="#seccion_eventos" class="px-3 lg:px-4 py-2 rounded-xl font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition">Eventos</a>
+                </div>
+                
+                <div class="hidden md:flex items-center gap-3 bg-slate-100 px-4 py-2 rounded-full cursor-pointer hover:bg-slate-200 transition-all hover:scale-105">
+                    <div class="w-9 h-9 bg-gradient-to-br from-blue-900 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">P</div>
+                    <span class="font-semibold text-slate-700 text-sm">Polaris Team</span>
+                </div>
+            </div>
+            
+            <div id="menuMobile" class="md:hidden hidden border-t border-slate-100">
+                <div class="flex flex-col py-4">
+                    <a href="#inicio.html" class="px-6 py-4 text-slate-700 font-semibold hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-3 border-b border-slate-50">Inicio</a>
+                    <a href="#seccion_miembros" class="px-6 py-4 text-slate-700 font-semibold hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-3 border-b border-slate-50">Miembros</a>
+                    <a href="#seccion_proyectos" class="px-6 py-4 text-slate-700 font-semibold hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-3">Proyectos</a>
+                    <a href="#seccion_eventos" class="px-6 py-4 text-slate-700 font-semibold hover:bg-blue-50 hover:text-blue-600 transition flex items-center gap-3 border-b border-slate-50">Eventos</a>
+                    <div class="flex items-center gap-3 px-6 py-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-900 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">P</div>
+                        <div>
+                            <p class="font-semibold text-slate-700">Polaris Team</p>
+                            <p class="text-xs text-slate-500">Equipo de trabajo</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO PRINCIPAL -->
+    <section id="inicio.html" class="relative min-h-screen flex items-center overflow-hidden hero-transition py-12">
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=2000&auto=format" 
+                 class="w-full h-full object-cover filter blur-sm brightness-50" 
+                 alt="Espacio">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
+        </div>
+
+        <div class="relative z-10 container mx-auto px-6 py-12">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="text-center lg:text-left">
+                    <div class="titulo-personalizado justify-center lg:justify-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" stroke-width="0" class="w-12 h-12 text-white">
+                            <path d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" />
+                        </svg>
+                        <span class="texto-polaris">POLARIS</span>
+                    </div>
+                    <p class="text-white/80 text-lg md:text-xl max-w-md mx-auto lg:mx-0 mt-4 mb-8 leading-relaxed">
+                        Plataforma del Instituto Tecnológico de Matamoros para la gestión de equipos, proyectos y eventos espaciales.
+                    </p>
+                    <a href="index.html" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-full transition shadow-lg hover:scale-105">
+                        Explorar sistema
+                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                    </a>
+                    <p class="text-blue-400/50 text-[10px] md:text-xs italic mt-4 tracking-wide">
+                        Elaborado por equipo: TeamPOLARIS
+                    </p>
+                </div>
+
+                <!-- COLUMNA DERECHA DEL HERO (cards clicables) -->
+                <div class="space-y-4">
+                    <!-- Tarjeta Miembros -->
+                    <div class="bg-white/5 backdrop-blur-sm rounded-xl p-4 border-l-4 border-blue-500 hover:bg-white/10 transition cursor-pointer"
+                         onclick="document.getElementById('seccion_miembros').scrollIntoView({behavior: 'smooth'})">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-blue-200 text-sm">Miembros registrados</p>
+                                <p class="text-3xl font-bold text-white" id="totalMiembrosHero">0</p>
+                            </div>
+                            <div class="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
+                                <svg class="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta Proyectos -->
+                    <div class="bg-white/5 backdrop-blur-sm rounded-xl p-4 border-l-4 border-purple-500 hover:bg-white/10 transition cursor-pointer"
+                         onclick="document.getElementById('seccion_proyectos').scrollIntoView({behavior: 'smooth'})">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-blue-200 text-sm">Proyectos activos</p>
+                                <p class="text-3xl font-bold text-white" id="totalProyectosHero">0</p>
+                            </div>
+                            <div class="w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center">
+                                <svg class="w-5 h-5 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta Eventos (con datos dinámicos) -->
+                    <div class="bg-white/5 backdrop-blur-sm rounded-xl p-4 border-l-4 border-pink-600 hover:bg-white/10 transition cursor-pointer"
+                         onclick="document.getElementById('seccion_eventos').scrollIntoView({behavior: 'smooth'})">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-blue-200 text-sm">Próximo evento</p>
+                                <p class="text-white text-sm font-semibold" id="eventoHeroNombre">Cargando...</p>
+                                <p class="text-blue-300 text-xs mt-1" id="eventoHeroFecha">Cargando...</p>
+                            </div>
+                            <div class="w-10 h-10 bg-pink-500/20 rounded-full flex items-center justify-center">
+                                <svg class="w-5 h-5 text-pink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN MIEMBROS (dinámica) -->
+    <section id="seccion_miembros" class="relative z-10 py-16 border-t border-white/10">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-white text-center mb-4">
+                <svg class="w-8 h-8 inline-block mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                Miembros
+            </h2>
+            <p class="text-blue-200 text-center max-w-2xl mx-auto mb-12">
+                Miembros del equipo POLARIS, gestión y creación de nuevos miembros y equipos.
+            </p>
+            <div id="miembros-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+                <div class="col-span-full text-center text-blue-300">Cargando miembros...</div>
+            </div>
+            <div class="text-center mt-12">
+                <a href="miembros.html" class="inline-flex items-center gap-2 bg-blue-600/80 hover:bg-blue-600 text-white font-semibold px-6 py-2 rounded-full transition-all hover:scale-105 hover:shadow-lg">
+                    Gestionar miembros y equipos
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN PROYECTOS (dinámica) -->
+    <section id="seccion_proyectos" class="relative z-10 py-16 border-t border-white/10">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-white text-center mb-4">
+                <svg class="w-8 h-8 inline-block mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                Proyectos
+            </h2>
+            <p class="text-blue-200 text-center max-w-2xl mx-auto mb-12">
+                Proyectos activos del programa POLARIS
+            </p>
+            <div id="proyectos-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+                <div class="col-span-full text-center text-blue-300">Cargando proyectos...</div>
+            </div>
+            <div class="text-center mt-12">
+                <a href="proyectos.html" class="inline-flex items-center gap-2 bg-purple-600/80 hover:bg-purple-600 text-white font-semibold px-6 py-2 rounded-full transition-all hover:scale-105 hover:shadow-lg">
+                    Ver todos los proyectos
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN EVENTOS (dinámica) -->
+    <section id="seccion_eventos" class="relative z-10 py-16 border-t border-white/10">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl font-bold text-white text-center mb-4">
+                <svg class="w-8 h-8 inline-block mr-2 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Próximos Eventos
+            </h2>
+            <p class="text-blue-200 text-center max-w-2xl mx-auto mb-12">
+                Participa en nuestras actividades y mantente actualizado sobre el programa espacial
+            </p>
+            <div id="eventos-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+                <div class="col-span-full text-center text-blue-300">Cargando eventos...</div>
+            </div>
+            <div class="text-center mt-12">
+                <a href="eventos.html" class="inline-flex items-center gap-2 bg-pink-600/80 hover:bg-pink-600 text-white font-semibold px-6 py-2 rounded-full transition-all hover:scale-105 hover:shadow-lg">
+                    Ver todos los eventos
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="relative z-10 border-t border-white/10 py-8 mt-8">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-white/40 text-sm">POLARIS · Instituto Tecnológico de Matamoros</p>
+            <p class="text-white/20 text-xs mt-2">© 2026 · Programa de Tecnologías Espaciales</p>
+        </div>
+    </footer>
+
+    <script>
+        // Función para cargar miembros (máximo 3)
+        async function cargarMiembros() {
+            try {
+                const res = await fetch('/api/miembros');
+                const miembros = await res.json();
+                const contenedor = document.getElementById('miembros-container');
+                const totalHero = document.getElementById('totalMiembrosHero');
+                if (totalHero) totalHero.textContent = miembros.length;
+                
+                if (!miembros.length) {
+                    contenedor.innerHTML = '<div class="col-span-full text-center text-blue-300">No hay miembros registrados aún.</div>';
+                    return;
+                }
+                
+                const miembrosMostrar = miembros.slice(0, 3);
+                contenedor.innerHTML = miembrosMostrar.map(m => `
+                    <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 text-center hover:bg-white/10 transition w-full">
+                        <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl shadow-lg">
+                            ${m.nombre ? m.nombre.charAt(0).toUpperCase() : 'M'}
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-1">${m.nombre || 'Miembro'}</h3>
+                        <p class="text-blue-300 text-sm">${m.rol || 'Participante'}</p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error al cargar miembros:', error);
+                document.getElementById('miembros-container').innerHTML = '<div class="col-span-full text-center text-red-400">Error al cargar miembros</div>';
+            }
+        }
+        
+        // Función para cargar proyectos (máximo 3)
+        async function cargarProyectos() {
+            try {
+                const res = await fetch('/api/proyectos');
+                const proyectos = await res.json();
+                const contenedor = document.getElementById('proyectos-container');
+                const totalHero = document.getElementById('totalProyectosHero');
+                if (totalHero) totalHero.textContent = proyectos.length;
+                
+                if (!proyectos.length) {
+                    contenedor.innerHTML = '<div class="col-span-full text-center text-blue-300">No hay proyectos registrados aún.</div>';
+                    return;
+                }
+                
+                const proyectosMostrar = proyectos.slice(0, 3);
+                contenedor.innerHTML = proyectosMostrar.map(p => `
+                    <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 text-center hover:bg-white/10 transition w-full">
+                        <h3 class="text-xl font-bold text-white mb-2">${p.nombre || 'Proyecto'}</h3>
+                        <p class="text-blue-200">${p.descripcion || 'Sin descripción'}</p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error al cargar proyectos:', error);
+                document.getElementById('proyectos-container').innerHTML = '<div class="col-span-full text-center text-red-400">Error al cargar proyectos</div>';
+            }
+        }
+        
+        // Función para cargar eventos en la sección (máximo 3)
+        async function cargarEventos() {
+            try {
+                const res = await fetch('/api/eventos');
+                const eventos = await res.json();
+                const contenedor = document.getElementById('eventos-container');
+                
+                if (!eventos.length) {
+                    contenedor.innerHTML = '<div class="col-span-full text-center text-blue-300">No hay eventos registrados aún.</div>';
+                    return;
+                }
+                
+                const eventosMostrar = eventos.slice(0, 3);
+                contenedor.innerHTML = eventosMostrar.map(e => `
+                    <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 text-center hover:bg-white/10 transition w-full">
+                        <h3 class="text-xl font-bold text-white mb-2">${e.nombre || 'Evento'}</h3>
+                        <p class="text-pink-600 text-sm mb-3 font-semibold">${e.fecha || 'Próximamente'}</p>
+                        <p class="text-blue-200 text-sm">${e.descripcion || 'Sin descripción'}</p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error al cargar eventos:', error);
+                document.getElementById('eventos-container').innerHTML = '<div class="col-span-full text-center text-red-400">Error al cargar eventos</div>';
+            }
+        }
+        
+        // Función para cargar el evento más reciente en el hero
+        async function cargarEventoReciente() {
+            try {
+                const res = await fetch('/api/eventos');
+                const eventos = await res.json();
+                
+                if (!eventos.length) {
+                    document.getElementById('eventoHeroNombre').textContent = 'No hay eventos';
+                    document.getElementById('eventoHeroFecha').textContent = 'Próximamente';
+                    return;
+                }
+                
+                const eventosOrdenados = [...eventos].sort((a, b) => {
+                    if (!a.fecha) return 1;
+                    if (!b.fecha) return -1;
+                    return new Date(a.fecha) - new Date(b.fecha);
+                });
+                
+                const eventoReciente = eventosOrdenados[0];
+                
+                document.getElementById('eventoHeroNombre').textContent = eventoReciente.nombre || 'Evento próximo';
+                
+                let fechaMostrar = 'Próximamente';
+                if (eventoReciente.fecha) {
+                    try {
+                        const fechaObj = new Date(eventoReciente.fecha);
+                        if (!isNaN(fechaObj.getTime())) {
+                            const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
+                            fechaMostrar = fechaObj.toLocaleDateString('es-ES', opciones);
+                        } else {
+                            fechaMostrar = eventoReciente.fecha;
+                        }
+                    } catch (e) {
+                        fechaMostrar = eventoReciente.fecha;
+                    }
+                }
+                
+                if (eventoReciente.ubicacion) {
+                    fechaMostrar += ` · ${eventoReciente.ubicacion}`;
+                }
+                
+                document.getElementById('eventoHeroFecha').textContent = fechaMostrar;
+                
+            } catch (error) {
+                console.error('Error al cargar evento reciente:', error);
+                document.getElementById('eventoHeroNombre').textContent = 'Error al cargar';
+                document.getElementById('eventoHeroFecha').textContent = 'Intenta más tarde';
+            }
+        }
+        
+        // Cargar todos los datos al iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarMiembros();
+            cargarProyectos();
+            cargarEventos();
+            cargarEventoReciente();
+        });
+    </script>
+    <script>
+        // JavaScript para el menú hamburguesa
+        const menuBtn = document.getElementById('menuBtn');
+        const menuMobile = document.getElementById('menuMobile');
+        const barra1 = document.getElementById('barra1');
+        const barra2 = document.getElementById('barra2');
+        const barra3 = document.getElementById('barra3');
+
+        if (menuBtn && menuMobile) {
+            menuBtn.addEventListener('click', () => {
+                menuMobile.classList.toggle('hidden');
+                menuBtn.classList.toggle('menu-open');
+            });
+        }
+    </script>
+</body>
+</html>
