@@ -115,12 +115,16 @@ async function cargarMiembros() {
                         <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">${escapeHtml(miembro.rol)}</span>
                     </td>
                     <td class="px-4 py-3 border-b">
-                        <div class="flex gap-2">
-                            <button class="bg-teal-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-teal-600 transition" onclick="editarMiembro(${miembro.id})">
-                                Editar
+                        <div class="flex items-center gap-2">
+                            <button class="inline-flex items-center justify-center bg-teal-500 text-white w-8 h-8 rounded-lg hover:bg-teal-600 transition" onclick="editarMiembro(${miembro.id})" title="Editar" aria-label="Editar">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L12 15l-4 1 1-4 8.586-8.586z"></path>
+                                </svg>
                             </button>
-                            <button class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition" onclick="eliminarMiembro(${miembro.id})">
-                                Eliminar
+                            <button class="inline-flex items-center justify-center bg-red-500 text-white w-8 h-8 rounded-lg hover:bg-red-600 transition" onclick="eliminarMiembro(${miembro.id})" title="Eliminar" aria-label="Eliminar">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h8"></path>
+                                </svg>
                             </button>
                         </div>
                     </td>
@@ -415,12 +419,16 @@ function renderListaProyectos() {
                     </div>
                 </div>
                 
-                <div class="flex gap-2">
-                    <button onclick="editarProyecto(${proyecto.id})" class="bg-teal-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-teal-600 transition">
-                        Editar
+                <div class="flex items-center gap-2">
+                    <button onclick="editarProyecto(${proyecto.id})" class="inline-flex items-center justify-center bg-teal-500 text-white w-8 h-8 rounded-lg hover:bg-teal-600 transition" title="Editar" aria-label="Editar">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L12 15l-4 1 1-4 8.586-8.586z"></path>
+                        </svg>
                     </button>
-                    <button onclick="eliminarProyecto(${proyecto.id})" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition">
-                        Eliminar
+                    <button onclick="eliminarProyecto(${proyecto.id})" class="inline-flex items-center justify-center bg-red-500 text-white w-8 h-8 rounded-lg hover:bg-red-600 transition" title="Eliminar" aria-label="Eliminar">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h8"></path>
+                        </svg>
                     </button>
                 </div>
             </div>
@@ -773,12 +781,16 @@ function renderListaEventos() {
                     </div>
                 </div>
                 
-                <div class="flex gap-2">
-                    <button onclick="editarEvento(${evento.id})" class="bg-teal-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-teal-600 transition">
-                        Editar
+                <div class="flex items-center gap-2">
+                    <button onclick="editarEvento(${evento.id})" class="inline-flex items-center justify-center bg-teal-500 text-white w-8 h-8 rounded-lg hover:bg-teal-600 transition" title="Editar" aria-label="Editar">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L12 15l-4 1 1-4 8.586-8.586z"></path>
+                        </svg>
                     </button>
-                    <button onclick="eliminarEvento(${evento.id})" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition">
-                        Eliminar
+                    <button onclick="eliminarEvento(${evento.id})" class="inline-flex items-center justify-center bg-red-500 text-white w-8 h-8 rounded-lg hover:bg-red-600 transition" title="Eliminar" aria-label="Eliminar">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h8"></path>
+                        </svg>
                     </button>
                 </div>
             </div>
