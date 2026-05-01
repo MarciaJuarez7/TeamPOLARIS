@@ -311,7 +311,10 @@ async function registrarProyecto(event) {
     const tipo = document.getElementById('proyectoTipo').value;
     const fecha = document.getElementById('proyectoFecha').value.trim();
     const descripcion = document.getElementById('proyectoDescripcion').value.trim();
-    const participantes = getParticipantesSeleccionados();
+    
+    // CAMBIO: Guardar SOLO los IDs, no los objetos completos
+    const checkboxes = document.querySelectorAll('.participante-checkbox:checked');
+    const participantesIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
     
     if (!nombre) {
         mostrarModal('Error de validación', 'Por favor ingresa el nombre del proyecto/evento.');
@@ -333,7 +336,7 @@ async function registrarProyecto(event) {
         return;
     }
     
-    if (participantes.length === 0) {
+    if (participantesIds.length === 0) {
         mostrarModal('Error de validación', 'Debes seleccionar al menos un participante inicial.');
         return;
     }
@@ -343,7 +346,7 @@ async function registrarProyecto(event) {
         tipo,
         fecha,
         descripcion,
-        participantes: participantes
+        participantes: participantesIds  // 🔴 CAMBIO: Ahora es array de IDs
     };
     
     try {
@@ -354,7 +357,7 @@ async function registrarProyecto(event) {
         });
         
         if (response.ok) {
-            mostrarModal('Éxito', `${tipo} "${nombre}" registrado correctamente con ${participantes.length} participante(s).`);
+            mostrarModal('Éxito', `${tipo} "${nombre}" registrado correctamente con ${participantesIds.length} participante(s).`);
             document.getElementById('formProyecto').reset();
             document.querySelectorAll('.participante-checkbox').forEach(cb => cb.checked = false);
             await cargarProyectos();
@@ -401,6 +404,12 @@ function renderListaProyectos() {
     const proyectosOrdenados = [...proyectos].reverse();
     
     container.innerHTML = proyectosOrdenados.map(proyecto => {
+        // 🔴 CAMBIO: Obtener nombres de los miembros por IDs
+        const miembrosNombres = proyecto.participantes.map(id => {
+            const miembro = miembrosParaProyectos.find(m => m.id === id);
+            return miembro ? miembro.nombre : `ID ${id}`;
+        });
+        
         return `
             <div class="proyecto-card bg-gradient-to-br from-white to-slate-50 rounded-xl p-5 shadow-md hover:shadow-xl transition border-l-4 border-blue-500">
                 <div class="flex justify-between items-start mb-3">
@@ -413,8 +422,8 @@ function renderListaProyectos() {
                 <div class="bg-slate-100 rounded-lg p-3 mb-3">
                     <p class="text-xs font-semibold text-slate-600 mb-2">👥 Participantes (${proyecto.participantes.length})</p>
                     <div class="flex flex-wrap gap-1">
-                        ${proyecto.participantes.map(p => `
-                            <span class="text-xs bg-white px-2 py-1 rounded-full shadow-sm">${escapeHtml(p.nombre)}</span>
+                        ${miembrosNombres.map(nombre => `
+                            <span class="text-xs bg-white px-2 py-1 rounded-full shadow-sm">${escapeHtml(nombre)}</span>
                         `).join('')}
                     </div>
                 </div>
@@ -476,14 +485,17 @@ async function editarProyecto(id) {
         document.getElementById('editProyectoFecha').value = proyecto.fecha;
         document.getElementById('editProyectoDescripcion').value = proyecto.descripcion;
 
-        renderCheckboxesEdicionParticipantes(proyecto.participantes);
+        // 🔴 CAMBIO: Asegurar que participantes es array de IDs
+        const participantesIds = proyecto.participantes || [];
+        
+        renderCheckboxesEdicionParticipantes(participantesIds);
         document.getElementById('cardEdicionProyecto').style.display = 'flex';
     } catch (error) {
         mostrarModal("Error", "No se pudo cargar el proyecto");
     }
 }
 
-function renderCheckboxesEdicionParticipantes(participantesActuales) {
+function renderCheckboxesEdicionParticipantes(participantesIds) {
     const container = document.getElementById('editParticipantesCheckboxes');
     
     if (!container) return;
@@ -493,7 +505,8 @@ function renderCheckboxesEdicionParticipantes(participantesActuales) {
         return;
     }
     
-    const idsParticipantes = participantesActuales.map(p => p.id);
+    // 🔴 CAMBIO: participantesIds ahora es un array de IDs
+    const idsParticipantes = participantesIds || [];
     
     container.innerHTML = miembrosParaProyectos.map(miembro => {
         const checked = idsParticipantes.includes(miembro.id) ? 'checked' : '';
@@ -511,8 +524,8 @@ function renderCheckboxesEdicionParticipantes(participantesActuales) {
 
 function getParticipantesSeleccionadosEdicion() {
     const checkboxes = document.querySelectorAll('.edit-participante-checkbox:checked');
-    const idsSeleccionados = Array.from(checkboxes).map(cb => parseInt(cb.value));
-    return miembrosParaProyectos.filter(miembro => idsSeleccionados.includes(miembro.id));
+    // 🔴 CAMBIO: Devolver solo los IDs
+    return Array.from(checkboxes).map(cb => parseInt(cb.value));
 }
 
 const formEdicionProyecto = document.getElementById('formEdicionProyecto');
@@ -524,14 +537,15 @@ if (formEdicionProyecto) {
         const tipo = document.getElementById('editProyectoTipo').value;
         const fecha = document.getElementById('editProyectoFecha').value.trim();
         const descripcion = document.getElementById('editProyectoDescripcion').value.trim();
-        const participantes = getParticipantesSeleccionadosEdicion();
+        // 🔴 CAMBIO: Esto ahora es array de IDs
+        const participantesIds = getParticipantesSeleccionadosEdicion();
 
         if (!nombre || !tipo || !fecha || !descripcion) {
             mostrarModal('Error de validación', 'Todos los campos son obligatorios.');
             return;
         }
         
-        if (participantes.length === 0) {
+        if (participantesIds.length === 0) {
             mostrarModal('Error de validación', 'Debes seleccionar al menos un participante.');
             return;
         }
@@ -540,7 +554,8 @@ if (formEdicionProyecto) {
             const respuesta = await fetch(`/api/proyectos/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nombre, tipo, fecha, descripcion, participantes })
+                // 🔴 CAMBIO: Enviar array de IDs
+                body: JSON.stringify({ nombre, tipo, fecha, descripcion, participantes: participantesIds })
             });
 
             if (respuesta.ok) {
@@ -1048,4 +1063,397 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initMobileMenu);
 } else {
     initMobileMenu();
+}
+
+// =================== SCRIPT PRINCIPAL ====================
+// Menú móvil - funciona en todas las páginas
+const menuBtn = document.getElementById('menuBtn');
+const menuMobile = document.getElementById('menuMobile');
+
+if (menuBtn && menuMobile) {
+    menuBtn.addEventListener('click', () => {
+        menuMobile.classList.toggle('hidden');
+        const spans = menuBtn.querySelectorAll('span');
+        spans.forEach(span => span.classList.toggle('bg-blue-600'));
+    });
+
+    menuMobile.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => menuMobile.classList.add('hidden'));
+    });
+}
+
+// =================== DETECTAR PÁGINA ACTUAL ====================
+const pagina = window.location.pathname.split('/').pop();
+
+// =================== CÓDIGO EXCLUSIVO PARA INICIO.HTML ====================
+if (pagina === 'inicio.html' || pagina === '') {
+    
+    async function cargarMiembros() {
+        try {
+            const res = await fetch('/api/miembros');
+            const miembros = await res.json();
+            const contenedor = document.getElementById('miembros-container');
+            const totalHero = document.getElementById('totalMiembrosHero');
+            if (totalHero) totalHero.textContent = miembros.length;
+            if (!contenedor) return;
+            if (!miembros.length) {
+                contenedor.innerHTML = '<div class="col-span-full text-center text-blue-300">No hay miembros registrados aún.</div>';
+                return;
+            }
+            const miembrosMostrar = miembros.slice(0, 3);
+            contenedor.innerHTML = miembrosMostrar.map(m => `
+                <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 text-center hover:bg-white/10 transition w-full">
+                    <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl shadow-lg">
+                        ${m.nombre ? m.nombre.charAt(0).toUpperCase() : 'M'}
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-1">${m.nombre || 'Miembro'}</h3>
+                    <p class="text-blue-300 text-sm">${m.rol || 'Participante'}</p>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error al cargar miembros:', error);
+            const contenedor = document.getElementById('miembros-container');
+            if (contenedor) contenedor.innerHTML = '<div class="col-span-full text-center text-red-400">Error al cargar miembros</div>';
+        }
+    }
+
+    async function cargarProyectosInicio() {
+        try {
+            const res = await fetch('/api/proyectos');
+            const proyectos = await res.json();
+            const contenedor = document.getElementById('proyectos-container');
+            const totalHero = document.getElementById('totalProyectosHero');
+            if (totalHero) totalHero.textContent = proyectos.length;
+            if (!contenedor) return;
+            if (!proyectos.length) {
+                contenedor.innerHTML = '<div class="col-span-full text-center text-blue-300">No hay proyectos registrados aún.</div>';
+                return;
+            }
+            const proyectosMostrar = proyectos.slice(0, 3);
+            contenedor.innerHTML = proyectosMostrar.map(p => `
+                <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 text-center hover:bg-white/10 transition w-full">
+                    <h3 class="text-xl font-bold text-white mb-2">${p.nombre || 'Proyecto'}</h3>
+                    <p class="text-blue-200">${p.descripcion || 'Sin descripción'}</p>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error al cargar proyectos:', error);
+        }
+    }
+
+    async function cargarEventos() {
+        try {
+            const res = await fetch('/api/eventos');
+            const eventos = await res.json();
+            const contenedor = document.getElementById('eventos-container');
+            if (!contenedor) return;
+            if (!eventos.length) {
+                contenedor.innerHTML = '<div class="col-span-full text-center text-blue-300">No hay eventos registrados aún.</div>';
+                return;
+            }
+            const eventosMostrar = eventos.slice(0, 3);
+            contenedor.innerHTML = eventosMostrar.map(e => `
+                <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 text-center hover:bg-white/10 transition w-full">
+                    <h3 class="text-xl font-bold text-white mb-2">${e.nombre || 'Evento'}</h3>
+                    <p class="text-pink-600 text-sm mb-3 font-semibold">${e.fecha || 'Próximamente'}</p>
+                    <p class="text-blue-200 text-sm">${e.descripcion || 'Sin descripción'}</p>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error al cargar eventos:', error);
+        }
+    }
+
+    async function cargarEventoReciente() {
+        try {
+            const res = await fetch('/api/eventos');
+            const eventos = await res.json();
+            const nombreElement = document.getElementById('eventoHeroNombre');
+            const fechaElement = document.getElementById('eventoHeroFecha');
+            if (!nombreElement || !fechaElement) return;
+            if (!eventos.length) {
+                nombreElement.textContent = 'No hay eventos';
+                fechaElement.textContent = 'Próximamente';
+                return;
+            }
+            const eventosOrdenados = [...eventos].sort((a, b) => {
+                if (!a.fecha) return 1;
+                if (!b.fecha) return -1;
+                return new Date(a.fecha) - new Date(b.fecha);
+            });
+            const eventoReciente = eventosOrdenados[0];
+            nombreElement.textContent = eventoReciente.nombre || 'Evento próximo';
+            let fechaMostrar = 'Próximamente';
+            if (eventoReciente.fecha) {
+                try {
+                    const fechaObj = new Date(eventoReciente.fecha);
+                    if (!isNaN(fechaObj.getTime())) {
+                        const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
+                        fechaMostrar = fechaObj.toLocaleDateString('es-ES', opciones);
+                    } else {
+                        fechaMostrar = eventoReciente.fecha;
+                    }
+                } catch (e) {
+                    fechaMostrar = eventoReciente.fecha;
+                }
+            }
+            if (eventoReciente.ubicacion) {
+                fechaMostrar += ` · ${eventoReciente.ubicacion}`;
+            }
+            fechaElement.textContent = fechaMostrar;
+        } catch (error) {
+            console.error('Error al cargar evento reciente:', error);
+        }
+    }
+
+    // Inicializar inicio.html
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarMiembros();
+        cargarProyectosInicio();
+        cargarEventos();
+        cargarEventoReciente();
+
+        // Botones de navegación
+        const btnMiembros = document.getElementById('btnMiembros');
+        if (btnMiembros) {
+            btnMiembros.addEventListener('click', () => {
+                document.getElementById('seccion_miembros')?.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+        const btnProyectos = document.getElementById('btnProyectos');
+        if (btnProyectos) {
+            btnProyectos.addEventListener('click', () => {
+                document.getElementById('seccion_proyectos')?.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+        const btnEventos = document.getElementById('btnEventos');
+        if (btnEventos) {
+            btnEventos.addEventListener('click', () => {
+                document.getElementById('seccion_eventos')?.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+    });
+}
+
+// =================== CÓDIGO EXCLUSIVO PARA PROYECTOS.HTML ====================
+if (pagina === 'proyectos.html') {
+
+    const API_PROYECTOS = '/api/proyectos';
+    const API_MIEMBROS = '/api/miembros';
+    let miembrosCache = [];
+
+    async function cargarCheckboxes() {
+        try {
+            const res = await fetch(API_MIEMBROS);
+            miembrosCache = await res.json();
+            const container = document.getElementById('participantesCheckboxes');
+            if (!container) return;
+            if (!miembrosCache.length) {
+                container.innerHTML = '<p class="text-center text-slate-500 italic py-4">No hay miembros registrados</p>';
+                return;
+            }
+            container.innerHTML = miembrosCache.map(m => `
+                <div class="checkbox-item">
+                    <input type="checkbox" name="participante" value="${m.id}" id="part_${m.id}">
+                    <label for="part_${m.id}">${m.nombre} <span class="rol-badge">(${m.rol})</span></label>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error al cargar miembros:', error);
+        }
+    }
+
+    function getNombreMiembro(id) {
+        const miembro = miembrosCache.find(m => m.id === id);
+        return miembro ? miembro.nombre : `ID ${id}`;
+    }
+
+    async function cargarProyectos() {
+        try {
+            const res = await fetch(API_PROYECTOS);
+            const proyectos = await res.json();
+            const totalElement = document.getElementById('totalProyectos');
+            if (totalElement) totalElement.textContent = proyectos.length;
+            const container = document.getElementById('proyectos-container');
+            if (!container) return;
+            if (proyectos.length === 0) {
+                container.innerHTML = '<div class="col-span-full text-center text-slate-500 italic py-8">No hay proyectos registrados</div>';
+                return;
+            }
+            if (miembrosCache.length === 0) {
+                const resMiembros = await fetch(API_MIEMBROS);
+                miembrosCache = await resMiembros.json();
+            }
+            container.innerHTML = proyectos.map(p => {
+                let participantesHtml = '';
+                if (p.participantes && p.participantes.length > 0) {
+                    const nombres = p.participantes.map(id => getNombreMiembro(id)).join(', ');
+                    participantesHtml = `
+                        <div class="mt-3 pt-2 border-t border-purple-500/20">
+                            <p class="text-purple-300 text-xs font-semibold mb-1">👥 Participantes:</p>
+                            <p class="text-slate-300 text-xs">${nombres}</p>
+                        </div>
+                    `;
+                } else {
+                    participantesHtml = `
+                        <div class="mt-3 pt-2 border-t border-purple-500/20">
+                            <p class="text-slate-400 text-xs">📌 Sin participantes asignados</p>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="bg-white/5 backdrop-blur-sm rounded-xl p-5 hover:bg-white/10 transition w-full border border-purple-500/20">
+                        <h3 class="text-lg font-bold text-purple-400 mb-1">${p.nombre || 'Proyecto'}</h3>
+                        <p class="text-slate-300 text-xs mb-1">📁 Tipo: ${p.tipo || '-'}</p>
+                        <p class="text-slate-300 text-xs mb-2">📅 Fecha: ${p.fecha || '-'}</p>
+                        <p class="text-slate-400 text-sm mb-2">📝 ${p.descripcion || 'Sin descripción'}</p>
+                        ${participantesHtml}
+                        <div class="flex justify-end gap-2 mt-3">
+                            <button onclick="window.editarProyecto(${p.id})" class="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded-lg text-xs transition">✏️ Editar</button>
+                            <button onclick="window.eliminarProyecto(${p.id})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-xs transition">🗑️ Eliminar</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    // Registrar proyecto
+    const formProyecto = document.getElementById('formProyecto');
+    if (formProyecto) {
+        formProyecto.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const participantes = [];
+            document.querySelectorAll('#participantesCheckboxes input:checked').forEach(cb => {
+                participantes.push(parseInt(cb.value));
+            });
+            const proyecto = {
+                nombre: document.getElementById('proyectoNombre').value,
+                tipo: document.getElementById('proyectoTipo').value,
+                fecha: document.getElementById('proyectoFecha').value,
+                descripcion: document.getElementById('proyectoDescripcion').value,
+                participantes: participantes
+            };
+            try {
+                const res = await fetch(API_PROYECTOS, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(proyecto)
+                });
+                if (res.ok) {
+                    alert('✅ Proyecto registrado');
+                    formProyecto.reset();
+                    document.querySelectorAll('#participantesCheckboxes input:checked').forEach(cb => cb.checked = false);
+                    const panel = document.getElementById('formularioPanel');
+                    if (panel) panel.classList.add('hidden');
+                    await cargarProyectos();
+                } else {
+                    alert('❌ Error al registrar');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('❌ Error de conexión');
+            }
+        });
+    }
+
+    // Editar proyecto
+    window.editarProyecto = async (id) => {
+        try {
+            const res = await fetch(API_PROYECTOS);
+            const proyectos = await res.json();
+            const proyecto = proyectos.find(p => p.id === id);
+            if (!proyecto) return;
+            document.getElementById('editId').value = proyecto.id;
+            document.getElementById('editNombre').value = proyecto.nombre || '';
+            document.getElementById('editTipo').value = proyecto.tipo || '';
+            document.getElementById('editFecha').value = proyecto.fecha || '';
+            document.getElementById('editDescripcion').value = proyecto.descripcion || '';
+            if (miembrosCache.length === 0) {
+                const resMiembros = await fetch(API_MIEMBROS);
+                miembrosCache = await resMiembros.json();
+            }
+            const participantesActuales = proyecto.participantes || [];
+            const container = document.getElementById('editParticipantesContainer');
+            if (container) {
+                container.innerHTML = miembrosCache.map(m => `
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="editParticipante" value="${m.id}" id="edit_part_${m.id}" ${participantesActuales.includes(m.id) ? 'checked' : ''}>
+                        <label for="edit_part_${m.id}">${m.nombre} <span class="rol-badge">(${m.rol})</span></label>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('modalEdicion').style.display = 'flex';
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    // Guardar edición
+    const formEdicion = document.getElementById('formEdicionProyecto');
+    if (formEdicion) {
+        formEdicion.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const participantes = [];
+            document.querySelectorAll('#editParticipantesContainer input:checked').forEach(cb => {
+                participantes.push(parseInt(cb.value));
+            });
+            const proyecto = {
+                nombre: document.getElementById('editNombre').value,
+                tipo: document.getElementById('editTipo').value,
+                fecha: document.getElementById('editFecha').value,
+                descripcion: document.getElementById('editDescripcion').value,
+                participantes: participantes
+            };
+            try {
+                const res = await fetch(`${API_PROYECTOS}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(proyecto)
+                });
+                if (res.ok) {
+                    alert('✅ Proyecto actualizado');
+                    window.cerrarModal();
+                    await cargarProyectos();
+                } else {
+                    alert('❌ Error al actualizar');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        });
+    }
+
+    // Eliminar proyecto
+    window.eliminarProyecto = async (id) => {
+        if (confirm('¿Eliminar este proyecto?')) {
+            try {
+                await fetch(`${API_PROYECTOS}/${id}`, { method: 'DELETE' });
+                await cargarProyectos();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    };
+
+    // Cerrar modal
+    window.cerrarModal = () => {
+        document.getElementById('modalEdicion').style.display = 'none';
+    };
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarCheckboxes();
+        cargarProyectos();
+        
+        const modal = document.getElementById('modalEdicion');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) window.cerrarModal();
+            });
+        }
+    });
 }

@@ -105,16 +105,35 @@ app.post('/api/miembros', (req, res) => {
     );
 });
 
-app.put('/api/miembros/:id', (req, res) => {
+app.put('/api/proyectos/:id', (req, res) => {
     const id = parseInt(req.params.id);
-    const { nombre, correo, rol } = req.body;
-
-    db.run('UPDATE miembros SET nombre = ?, correo = ?, rol = ? WHERE id = ?',
-        [nombre, correo, rol, id],
+    const { nombre, tipo, fecha, descripcion, participantes } = req.body;
+    
+    console.log('PUT recibido:', { id, nombre, tipo, fecha, descripcion, participantes });
+    
+    db.run(
+        `UPDATE proyectos SET nombre = ?, tipo = ?, fecha = ?, descripcion = ? WHERE id = ?`,
+        [nombre, tipo, fecha, descripcion, id],
         function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-            if (this.changes === 0) return res.status(404).json({ error: 'Miembro no encontrado' });
-            res.json({ mensaje: 'Miembro actualizado correctamente' });
+            if (err) {
+                console.error('Error UPDATE:', err);
+                return res.status(500).json({ error: err.message });
+            }
+            
+            // Eliminar participantes anteriores
+            db.run(`DELETE FROM proyecto_participantes WHERE proyecto_id = ?`, [id], (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                
+                if (participantes && participantes.length > 0) {
+                    const stmt = db.prepare(`INSERT INTO proyecto_participantes (proyecto_id, miembro_id) VALUES (?, ?)`);
+                    participantes.forEach(miembroId => {
+                        stmt.run(id, miembroId);
+                    });
+                    stmt.finalize();
+                }
+                
+                res.json({ message: 'Proyecto actualizado exitosamente' });
+            });
         }
     );
 });
@@ -130,36 +149,77 @@ app.delete('/api/miembros/:id', (req, res) => {
 
 // ==================== CRUD DE PROYECTOS ====================
 
+// Obtener todos los proyectos con sus participantes
 app.get('/api/proyectos', (req, res) => {
-    db.all('SELECT * FROM proyectos ORDER BY id DESC', [], (err, proyectos) => {
+    const sql = `
+        SELECT p.*, 
+               GROUP_CONCAT(pp.miembro_id) as participantes_ids
+        FROM proyectos p
+        LEFT JOIN proyecto_participantes pp ON p.id = pp.proyecto_id
+        GROUP BY p.id
+        ORDER BY p.id DESC
+    `;
+    
+    db.all(sql, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         
-        if (proyectos.length === 0) return res.json([]);
+        const proyectos = rows.map(row => ({
+            id: row.id,
+            nombre: row.nombre,
+            tipo: row.tipo,
+            fecha: row.fecha,
+            descripcion: row.descripcion,
+            participantes: row.participantes_ids ? row.participantes_ids.split(',').map(Number) : []
+        }));
         
-        let completados = 0;
-        const proyectosConParticipantes = [];
-        
-        proyectos.forEach((proyecto, index) => {
-            db.all(`SELECT m.id, m.nombre, m.correo, m.rol 
-                    FROM proyecto_participantes pp
-                    JOIN miembros m ON pp.miembro_id = m.id
-                    WHERE pp.proyecto_id = ?`, [proyecto.id], (err, participantes) => {
-                if (err) return res.status(500).json({ error: err.message });
-                proyectosConParticipantes.push({ ...proyecto, participantes });
-                completados++;
-                if (completados === proyectos.length) res.json(proyectosConParticipantes);
-            });
-        });
+        res.json(proyectos);
     });
 });
 
+// Obtener un proyecto por ID
+app.get('/api/proyectos/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    
+    const sql = `
+        SELECT p.*, 
+               GROUP_CONCAT(pp.miembro_id) as participantes_ids
+        FROM proyectos p
+        LEFT JOIN proyecto_participantes pp ON p.id = pp.proyecto_id
+        WHERE p.id = ?
+        GROUP BY p.id
+    `;
+    
+    db.get(sql, [id], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ error: 'Proyecto no encontrado' });
+        
+        const proyecto = {
+            id: row.id,
+            nombre: row.nombre,
+            tipo: row.tipo,
+            fecha: row.fecha,
+            descripcion: row.descripcion,
+            participantes: row.participantes_ids ? row.participantes_ids.split(',').map(Number) : []
+        };
+        
+        res.json(proyecto);
+    });
+});
+
+// Crear proyecto
 app.post('/api/proyectos', (req, res) => {
     const { nombre, tipo, fecha, descripcion, participantes } = req.body;
-    if (!nombre || !tipo || !fecha || !descripcion || !participantes || participantes.length === 0) {
-        return res.status(400).json({ error: 'Todos los campos son obligatorios y debe haber al menos un participante' });
+    
+    if (!nombre || !tipo || !fecha || !descripcion) {
+        return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
-
-    db.run('INSERT INTO proyectos (nombre, tipo, fecha, descripcion) VALUES (?, ?, ?, ?)',
+    
+    if (!participantes || participantes.length === 0) {
+        return res.status(400).json({ error: 'Debe haber al menos un participante' });
+    }
+    
+    db.run(
+        `INSERT INTO proyectos (nombre, tipo, fecha, descripcion) VALUES (?, ?, ?, ?)`,
         [nombre, tipo, fecha, descripcion],
         function(err) {
             if (err) return res.status(500).json({ error: err.message });
@@ -167,100 +227,142 @@ app.post('/api/proyectos', (req, res) => {
             const proyectoId = this.lastID;
             let inserts = 0;
             
-            participantes.forEach(p => {
-                db.run('INSERT INTO proyecto_participantes (proyecto_id, miembro_id) VALUES (?, ?)',
-                    [proyectoId, p.id], (err) => {
+            participantes.forEach(miembroId => {
+                db.run(`INSERT INTO proyecto_participantes (proyecto_id, miembro_id) VALUES (?, ?)`,
+                    [proyectoId, miembroId],
+                    (err) => {
                         if (err) console.error('Error insertando participante:', err);
                         inserts++;
                         if (inserts === participantes.length) {
-                            res.status(201).json({ id: proyectoId, nombre, tipo, fecha, descripcion, participantes });
+                            res.json({ 
+                                id: proyectoId, 
+                                message: 'Proyecto creado exitosamente',
+                                participantes: participantes.length
+                            });
                         }
                     });
             });
-        });
-    });
-
-
-app.get('/api/proyectos/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    db.get('SELECT * FROM proyectos WHERE id = ?', [id], (err, proyecto) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (!proyecto) return res.status(404).json({ error: 'Proyecto no encontrado' });
-        
-        db.all(`SELECT m.id, m.nombre, m.correo, m.rol 
-                FROM proyecto_participantes pp
-                JOIN miembros m ON pp.miembro_id = m.id
-                WHERE pp.proyecto_id = ?`, [id], (err, participantes) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ ...proyecto, participantes });
-        });
-    });
+        }
+    );
 });
 
+// Actualizar proyecto
 app.put('/api/proyectos/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const { nombre, tipo, fecha, descripcion, participantes } = req.body;
-
-    db.run('UPDATE proyectos SET nombre = ?, tipo = ?, fecha = ?, descripcion = ? WHERE id = ?',
+    
+    db.run(
+        `UPDATE proyectos SET nombre = ?, tipo = ?, fecha = ?, descripcion = ? WHERE id = ?`,
         [nombre, tipo, fecha, descripcion, id],
-        function(err) {
+        (err) => {
             if (err) return res.status(500).json({ error: err.message });
-            if (this.changes === 0) return res.status(404).json({ error: 'Proyecto no encontrado' });
             
-            db.run('DELETE FROM proyecto_participantes WHERE proyecto_id = ?', [id], () => {
-                participantes.forEach(p => {
-                    db.run('INSERT INTO proyecto_participantes (proyecto_id, miembro_id) VALUES (?, ?)', [id, p.id]);
-                });
-                res.json({ mensaje: 'Proyecto actualizado correctamente' });
+            // Eliminar participantes anteriores
+            db.run(`DELETE FROM proyecto_participantes WHERE proyecto_id = ?`, [id], (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                
+                if (participantes && participantes.length > 0) {
+                    participantes.forEach(miembroId => {
+                        db.run(`INSERT INTO proyecto_participantes (proyecto_id, miembro_id) VALUES (?, ?)`,
+                            [id, miembroId]);
+                    });
+                }
+                
+                res.json({ message: 'Proyecto actualizado exitosamente' });
             });
-        });
-    });
+        }
+    );
+});
 
-
-
-
-
+// Eliminar proyecto
 app.delete('/api/proyectos/:id', (req, res) => {
     const id = parseInt(req.params.id);
-    db.run('DELETE FROM proyectos WHERE id = ?', id, function(err) {
+    
+    // Los participantes se eliminan automáticamente por ON DELETE CASCADE
+    db.run(`DELETE FROM proyectos WHERE id = ?`, [id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         if (this.changes === 0) return res.status(404).json({ error: 'Proyecto no encontrado' });
-        res.json({ mensaje: 'Proyecto eliminado correctamente' });
+        res.json({ message: 'Proyecto eliminado exitosamente' });
     });
 });
 
 // ==================== CRUD DE EVENTOS ====================
 
+// Obtener todos los eventos con sus asistentes
 app.get('/api/eventos', (req, res) => {
-    db.all('SELECT * FROM eventos ORDER BY fecha DESC', [], (err, eventos) => {
+    const sql = `
+        SELECT e.*, 
+               GROUP_CONCAT(ea.miembro_id) as asistentes_ids
+        FROM eventos e
+        LEFT JOIN evento_asistentes ea ON e.id = ea.evento_id
+        GROUP BY e.id
+        ORDER BY e.fecha DESC
+    `;
+    
+    db.all(sql, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         
-        if (eventos.length === 0) return res.json([]);
+        const eventos = rows.map(row => ({
+            id: row.id,
+            nombre: row.nombre,
+            ubicacion: row.ubicacion,
+            fecha: row.fecha,
+            hora: row.hora,
+            tipo: row.tipo,
+            descripcion: row.descripcion,
+            asistentes: row.asistentes_ids ? row.asistentes_ids.split(',').map(Number) : []
+        }));
         
-        let completados = 0;
-        const eventosConAsistentes = [];
-        
-        eventos.forEach((evento, index) => {
-            db.all(`SELECT m.id, m.nombre, m.correo, m.rol 
-                    FROM evento_asistentes ea
-                    JOIN miembros m ON ea.miembro_id = m.id
-                    WHERE ea.evento_id = ?`, [evento.id], (err, asistentes) => {
-                if (err) return res.status(500).json({ error: err.message });
-                eventosConAsistentes.push({ ...evento, asistentes });
-                completados++;
-                if (completados === eventos.length) res.json(eventosConAsistentes);
-            });
-        });
+        res.json(eventos);
     });
 });
 
+// Obtener un evento por ID
+app.get('/api/eventos/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    
+    const sql = `
+        SELECT e.*, 
+               GROUP_CONCAT(ea.miembro_id) as asistentes_ids
+        FROM eventos e
+        LEFT JOIN evento_asistentes ea ON e.id = ea.evento_id
+        WHERE e.id = ?
+        GROUP BY e.id
+    `;
+    
+    db.get(sql, [id], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ error: 'Evento no encontrado' });
+        
+        const evento = {
+            id: row.id,
+            nombre: row.nombre,
+            ubicacion: row.ubicacion,
+            fecha: row.fecha,
+            hora: row.hora,
+            tipo: row.tipo,
+            descripcion: row.descripcion,
+            asistentes: row.asistentes_ids ? row.asistentes_ids.split(',').map(Number) : []
+        };
+        
+        res.json(evento);
+    });
+});
+
+// Crear evento
 app.post('/api/eventos', (req, res) => {
     const { nombre, ubicacion, fecha, hora, tipo, descripcion, asistentes } = req.body;
-    if (!nombre || !ubicacion || !fecha || !hora || !tipo || !descripcion || !asistentes || asistentes.length === 0) {
-        return res.status(400).json({ error: 'Todos los campos son obligatorios y debe haber al menos un asistente' });
+    
+    if (!nombre || !ubicacion || !fecha || !hora || !tipo || !descripcion) {
+        return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
-
-    db.run('INSERT INTO eventos (nombre, ubicacion, fecha, hora, tipo, descripcion) VALUES (?, ?, ?, ?, ?, ?)',
+    
+    if (!asistentes || asistentes.length === 0) {
+        return res.status(400).json({ error: 'Debe haber al menos un asistente' });
+    }
+    
+    db.run(
+        `INSERT INTO eventos (nombre, ubicacion, fecha, hora, tipo, descripcion) VALUES (?, ?, ?, ?, ?, ?)`,
         [nombre, ubicacion, fecha, hora, tipo, descripcion],
         function(err) {
             if (err) return res.status(500).json({ error: err.message });
@@ -268,61 +370,61 @@ app.post('/api/eventos', (req, res) => {
             const eventoId = this.lastID;
             let inserts = 0;
             
-            asistentes.forEach(a => {
-                db.run('INSERT INTO evento_asistentes (evento_id, miembro_id) VALUES (?, ?)',
-                    [eventoId, a.id], (err) => {
+            asistentes.forEach(miembroId => {
+                db.run(`INSERT INTO evento_asistentes (evento_id, miembro_id) VALUES (?, ?)`,
+                    [eventoId, miembroId],
+                    (err) => {
                         if (err) console.error('Error insertando asistente:', err);
                         inserts++;
                         if (inserts === asistentes.length) {
-                            res.status(201).json({ id: eventoId, nombre, ubicacion, fecha, hora, tipo, descripcion, asistentes });
+                            res.json({ 
+                                id: eventoId, 
+                                message: 'Evento creado exitosamente',
+                                asistentes: asistentes.length
+                            });
                         }
                     });
             });
-        });
-    });
-
-
-app.get('/api/eventos/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    db.get('SELECT * FROM eventos WHERE id = ?', [id], (err, evento) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (!evento) return res.status(404).json({ error: 'Evento no encontrado' });
-        
-        db.all(`SELECT m.id, m.nombre, m.correo, m.rol 
-                FROM evento_asistentes ea
-                JOIN miembros m ON ea.miembro_id = m.id
-                WHERE ea.evento_id = ?`, [id], (err, asistentes) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ ...evento, asistentes });
-        });
-    });
+        }
+    );
 });
 
+// Actualizar evento
 app.put('/api/eventos/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const { nombre, ubicacion, fecha, hora, tipo, descripcion, asistentes } = req.body;
-
-    db.run('UPDATE eventos SET nombre = ?, ubicacion = ?, fecha = ?, hora = ?, tipo = ?, descripcion = ? WHERE id = ?',
+    
+    db.run(
+        `UPDATE eventos SET nombre = ?, ubicacion = ?, fecha = ?, hora = ?, tipo = ?, descripcion = ? WHERE id = ?`,
         [nombre, ubicacion, fecha, hora, tipo, descripcion, id],
-        function(err) {
+        (err) => {
             if (err) return res.status(500).json({ error: err.message });
-            if (this.changes === 0) return res.status(404).json({ error: 'Evento no encontrado' });
             
-            db.run('DELETE FROM evento_asistentes WHERE evento_id = ?', [id], () => {
-                asistentes.forEach(a => {
-                    db.run('INSERT INTO evento_asistentes (evento_id, miembro_id) VALUES (?, ?)', [id, a.id]);
-                });
-                res.json({ mensaje: 'Evento actualizado correctamente' });
+            // Eliminar asistentes anteriores
+            db.run(`DELETE FROM evento_asistentes WHERE evento_id = ?`, [id], (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                
+                if (asistentes && asistentes.length > 0) {
+                    asistentes.forEach(miembroId => {
+                        db.run(`INSERT INTO evento_asistentes (evento_id, miembro_id) VALUES (?, ?)`,
+                            [id, miembroId]);
+                    });
+                }
+                
+                res.json({ message: 'Evento actualizado exitosamente' });
             });
-        });
-    });
+        }
+    );
+});
 
+// Eliminar evento
 app.delete('/api/eventos/:id', (req, res) => {
     const id = parseInt(req.params.id);
-    db.run('DELETE FROM eventos WHERE id = ?', id, function(err) {
+    
+    db.run(`DELETE FROM eventos WHERE id = ?`, [id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         if (this.changes === 0) return res.status(404).json({ error: 'Evento no encontrado' });
-        res.json({ mensaje: 'Evento eliminado correctamente' });
+        res.json({ message: 'Evento eliminado exitosamente' });
     });
 });
 
@@ -340,4 +442,216 @@ app.listen(port, () => {
     📁 Base de datos: polaris.db
     ═══════════════════════════════════════
     `);
+});
+
+// Obtener participantes de un proyecto
+app.get('/api/proyecto_participantes', (req, res) => {
+    const { proyectoId } = req.query;
+    db.all(
+        "SELECT miembroId FROM proyecto_participantes WHERE proyectoId = ?",
+        [proyectoId],
+        (err, rows) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json(rows);
+        }
+    );
+});
+
+// Al crear proyecto, guardar participantes
+// Modifica tu POST /api/proyectos
+app.post('/api/proyectos', (req, res) => {
+    const { nombre, tipo, fecha, descripcion, participantes } = req.body;
+    
+    db.run(
+        "INSERT INTO proyectos (nombre, tipo, fecha, descripcion) VALUES (?, ?, ?, ?)",
+        [nombre, tipo, fecha, descripcion],
+        function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            
+            const proyectoId = this.lastID;
+            
+            // Guardar participantes
+            if (participantes && participantes.length) {
+                const stmt = db.prepare("INSERT INTO proyecto_participantes (proyectoId, miembroId) VALUES (?, ?)");
+                participantes.forEach(miembroId => {
+                    stmt.run(proyectoId, miembroId);
+                });
+                stmt.finalize();
+            }
+            
+            res.json({ id: proyectoId, message: "Proyecto creado" });
+        }
+    );
+});
+
+// Al actualizar proyecto, actualizar participantes
+app.put('/api/proyectos/:id', (req, res) => {
+    const { id } = req.params;
+    const { nombre, tipo, fecha, descripcion, participantes } = req.body;
+    
+    db.run(
+        "UPDATE proyectos SET nombre = ?, tipo = ?, fecha = ?, descripcion = ? WHERE id = ?",
+        [nombre, tipo, fecha, descripcion, id],
+        (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            
+            // Eliminar participantes anteriores
+            db.run("DELETE FROM proyecto_participantes WHERE proyectoId = ?", [id], (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                
+                // Insertar nuevos participantes
+                if (participantes && participantes.length) {
+                    const stmt = db.prepare("INSERT INTO proyecto_participantes (proyectoId, miembroId) VALUES (?, ?)");
+                    participantes.forEach(miembroId => {
+                        stmt.run(id, miembroId);
+                    });
+                    stmt.finalize();
+                }
+                
+                res.json({ message: "Proyecto actualizado" });
+            });
+        }
+    );
+});
+
+// Al eliminar proyecto, eliminar también sus participantes
+app.delete('/api/proyectos/:id', (req, res) => {
+    const { id } = req.params;
+    
+    db.run("DELETE FROM proyecto_participantes WHERE proyectoId = ?", [id], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        
+        db.run("DELETE FROM proyectos WHERE id = ?", [id], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ message: "Proyecto eliminado" });
+        });
+    });
+});
+
+// ========== PROYECTOS ==========
+
+// Obtener todos los proyectos con sus participantes
+app.get('/api/proyectos', (req, res) => {
+    const sql = `
+        SELECT p.*, 
+               GROUP_CONCAT(pp.miembroId) as participantes_ids
+        FROM proyectos p
+        LEFT JOIN proyecto_participantes pp ON p.id = pp.proyectoId
+        GROUP BY p.id
+        ORDER BY p.id DESC
+    `;
+    
+    db.all(sql, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        
+        // Convertir participantes_ids de string a array
+        const proyectos = rows.map(row => ({
+            ...row,
+            participantes: row.participantes_ids ? row.participantes_ids.split(',').map(Number) : []
+        }));
+        
+        res.json(proyectos);
+    });
+});
+
+// Obtener un proyecto por ID
+app.get('/api/proyectos/:id', (req, res) => {
+    const { id } = req.params;
+    
+    const sql = `
+        SELECT p.*, 
+               GROUP_CONCAT(pp.miembroId) as participantes_ids
+        FROM proyectos p
+        LEFT JOIN proyecto_participantes pp ON p.id = pp.proyectoId
+        WHERE p.id = ?
+        GROUP BY p.id
+    `;
+    
+    db.get(sql, [id], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ error: 'Proyecto no encontrado' });
+        
+        const proyecto = {
+            ...row,
+            participantes: row.participantes_ids ? row.participantes_ids.split(',').map(Number) : []
+        };
+        
+        res.json(proyecto);
+    });
+});
+
+// Crear proyecto
+app.post('/api/proyectos', (req, res) => {
+    const { nombre, tipo, fecha, descripcion, participantes } = req.body;
+    
+    if (!nombre || !tipo || !fecha || !descripcion) {
+        return res.status(400).json({ error: 'Faltan campos requeridos' });
+    }
+    
+    db.run(
+        `INSERT INTO proyectos (nombre, tipo, fecha, descripcion) VALUES (?, ?, ?, ?)`,
+        [nombre, tipo, fecha, descripcion],
+        function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            
+            const proyectoId = this.lastID;
+            
+            // Insertar participantes en tabla pivote
+            if (participantes && participantes.length > 0) {
+                const stmt = db.prepare(`INSERT INTO proyecto_participantes (proyectoId, miembroId) VALUES (?, ?)`);
+                participantes.forEach(miembroId => {
+                    stmt.run(proyectoId, miembroId);
+                });
+                stmt.finalize();
+            }
+            
+            res.json({ id: proyectoId, message: 'Proyecto creado exitosamente' });
+        }
+    );
+});
+
+// Actualizar proyecto
+app.put('/api/proyectos/:id', (req, res) => {
+    const { id } = req.params;
+    const { nombre, tipo, fecha, descripcion, participantes } = req.body;
+    
+    db.run(
+        `UPDATE proyectos SET nombre = ?, tipo = ?, fecha = ?, descripcion = ? WHERE id = ?`,
+        [nombre, tipo, fecha, descripcion, id],
+        (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            
+            // Eliminar participantes anteriores
+            db.run(`DELETE FROM proyecto_participantes WHERE proyectoId = ?`, [id], (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                
+                // Insertar nuevos participantes
+                if (participantes && participantes.length > 0) {
+                    const stmt = db.prepare(`INSERT INTO proyecto_participantes (proyectoId, miembroId) VALUES (?, ?)`);
+                    participantes.forEach(miembroId => {
+                        stmt.run(id, miembroId);
+                    });
+                    stmt.finalize();
+                }
+                
+                res.json({ message: 'Proyecto actualizado exitosamente' });
+            });
+        }
+    );
+});
+
+// Eliminar proyecto
+app.delete('/api/proyectos/:id', (req, res) => {
+    const { id } = req.params;
+    
+    // Primero eliminar participantes
+    db.run(`DELETE FROM proyecto_participantes WHERE proyectoId = ?`, [id], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        
+        // Luego eliminar proyecto
+        db.run(`DELETE FROM proyectos WHERE id = ?`, [id], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ message: 'Proyecto eliminado exitosamente' });
+        });
+    });
 });

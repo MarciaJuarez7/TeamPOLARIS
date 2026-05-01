@@ -2,121 +2,56 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POLARIS | Eventos</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        html { scroll-behavior: smooth; }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in-up {
-            animation: fadeInUp 0.8s ease-out forwards;
-        }
-        .delay-100 { animation-delay: 0.1s; }
-        .delay-200 { animation-delay: 0.2s; }
-        .star {
-            position: fixed;
-            background: white;
-            border-radius: 50%;
-            opacity: 0;
-            animation: twinkle 3s infinite;
-            z-index: 0;
-        }
-        @keyframes twinkle {
-            0%, 100% { opacity: 0; transform: scale(0.8); }
-            50% { opacity: 0.7; transform: scale(1); }
-        }
-
-        .titulo-personalizado {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-
-        @media (min-width: 1024px) {
-            .titulo-personalizado {
-                justify-content: flex-start;
-            }
-        }
-
-        .texto-polaris {
-            font-size: 3rem;
-            font-weight: 700;
-            color: white;
-            font-family: 'Orbitron', monospace;
-        }
-
-        @media (min-width: 768px) {
-            .texto-polaris {
-                font-size: 4.5rem;
-            }
-        }
-
-        .hero-transition::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 80px;
-            background: linear-gradient(to bottom, transparent, #0a0f2a);
-            pointer-events: none;
-            z-index: 1;
-        }
-        
-        body {
-            background: radial-gradient(circle at 20% 30%, #0a0f2a, #030614);
-            position: relative;
-        }
-
-        #eventos-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-            justify-items: center;
-            align-items: stretch;
-        }
-
-        @media (min-width: 768px) {
-            #eventos-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (min-width: 1024px) {
-            #eventos-container {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        #eventos-container > div {
-            width: 100%;
-            max-width: 380px;
-        }
-    </style>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/input.css">
+    <style>
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); font-family: 'Segoe UI', sans-serif; }
+    .participantes-container {
+        max-height: 250px;
+        overflow-y: auto;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px;
+        background: #f8fafc;
+    }
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        margin: 6px 0;
+        background: white;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+    }
+    .checkbox-item:hover {
+        background: #fce7f3;
+        border-color: #ec4899;
+    }
+    .checkbox-item input {
+        margin-right: 12px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    .checkbox-item label {
+        cursor: pointer;
+        flex: 1;
+    }
+    .rol-badge {
+        font-size: 0.7rem;
+        background: #fce7f3;
+        color: #db2777;
+        padding: 2px 8px;
+        border-radius: 20px;
+        margin-left: 8px;
+    }
+</style>
 </head>
 <body class="bg-gradient-to-br from-[#0a0f2a] via-[#0f1a3a] to-[#0a0f2a] font-sans relative overflow-x-hidden">
-
-    <!-- Estrellas generadas con JS -->
     <div id="stars-container" class="fixed inset-0 pointer-events-none"></div>
-    <script>
-        for (let i = 0; i < 200; i++) {
-            const star = document.createElement('div');
-            star.classList.add('star');
-            star.style.width = Math.random() * 3 + 'px';
-            star.style.height = star.style.width;
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.animationDelay = Math.random() * 5 + 's';
-            star.style.animationDuration = Math.random() * 3 + 2 + 's';
-            document.getElementById('stars-container').appendChild(star);
-        }
-    </script>
 
     <!-- NAVBAR -->
     <nav class="sticky top-0 z-50 w-full">
@@ -139,7 +74,7 @@
                     <a href="inicio.html" class="px-3 lg:px-4 py-2 rounded-xl font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition-all hover:-translate-y-0.5">Inicio</a>
                     <a href="miembros.html" class="px-3 lg:px-4 py-2 rounded-xl font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition-all hover:-translate-y-0.5">Miembros</a>
                     <a href="proyectos.html" class="px-3 lg:px-4 py-2 rounded-xl font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition-all hover:-translate-y-0.5">Proyectos</a>
-                    <a href="eventos.html" class="px-3 lg:px-4 py-2 rounded-xl font-semibold text-pink-600">Eventos</a>
+                    <a href="eventos.html" class="px-3 lg:px-4 py-2 rounded-xl font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition">Eventos</a>
                 </div>
                 
                 <div class="hidden md:flex items-center gap-3 bg-slate-100 px-4 py-2 rounded-full cursor-pointer hover:bg-slate-200 transition-all hover:scale-105">
@@ -166,224 +101,533 @@
         </div>
     </nav>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
-        
-        <!-- Título de página -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-white mb-2">Gestión de Eventos</h1>
-            <p class="text-blue-200">Administra los eventos y actividades del programa POLARIS</p>
-        </div>
+    <!-- CONTENIDO PRINCIPAL (se expande para empujar el footer abajo) -->
+    <main class="flex-1">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-white mb-2">Eventos en Polaris</h1>
+                <p class="text-pink-200">Organiza conferencias, talleres, webinars y más</p>
+            </div>
 
-        <!-- Tarjeta de estadísticas (eventos totales) -->
-        <div class="flex justify-center mb-6">
-            <div class="bg-gradient-to-br from-pink-600 to-pink-800 rounded-2xl p-6 text-white shadow-2xl w-full max-w-md">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-pink-200 text-sm font-semibold">EVENTOS TOTALES</p>
-                        <p class="text-4xl font-bold mt-2" id="totalEventos">0</p>
-                    </div>
-                    <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
+            <!-- Stats -->
+            <div class="flex justify-center mb-8">
+                <div class="bg-gradient-to-br from-pink-600 to-rose-700 rounded-xl p-3 shadow-2xl w-full max-w-xs">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-pink-200 text-xs font-semibold">TOTAL EVENTOS</p>
+                            <p class="text-2xl font-bold text-white mt-1" id="totalEventos">0</p>
+                        </div>
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Botón registrar evento -->
-        <div class="flex justify-center mb-8">
-            <button onclick="document.getElementById('formularioPanel').classList.toggle('hidden')" 
-                    class="bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 text-white font-semibold py-2 px-6 rounded-full shadow-md transition-all hover:scale-105 flex items-center gap-2 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                Registrar nuevo evento
-            </button>
-        </div>
-
-        <!-- Panel del formulario (oculto inicialmente) -->
-        <div id="formularioPanel" class="hidden mb-8">
-            <div class="bg-white rounded-2xl p-6 md:p-8 shadow-2xl">
-                <div class="flex items-center gap-3 mb-6">
+            <!-- Formulario -->
+            <div id="formulario" class="hidden mb-8 bg-white rounded-2xl shadow-2xl p-6">
+                <div class="flex items-center gap-3 mb-4">
                     <div class="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
                         <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-2xl font-bold text-pink-900">Registrar Evento</h3>
+                    <h2 class="text-2xl font-bold text-pink-900">Registrar Evento</h2>
                 </div>
-                <div class="h-0.5 bg-gradient-to-r from-pink-500 to-transparent rounded-full mb-6"></div>
+                <hr class="h-0.5 bg-gradient-to-r from-pink-500 via-pink-300 to-transparent mb-6">
                 
-                <form id="formEvento" class="space-y-5">
-                    <div>
-                        <label class="block font-semibold text-slate-700 mb-2">Nombre del evento</label>
-                        <input type="text" id="nombre" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-pink-500 focus:outline-none" placeholder="Ejemplo: Lanzamiento de prototipo" required>
+                <form id="formPrincipal">
+                    <div class="mb-4"><label class="block font-semibold mb-2">Nombre del Evento</label><input type="text" id="nombre" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-pink-400" required></div>
+                    <div class="mb-4"><label class="block font-semibold mb-2">Ubicación</label><input type="text" id="ubicacion" class="w-full px-4 py-2 border rounded-lg" placeholder="Ej: Auditorio Principal" required></div>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div><label class="block font-semibold mb-2">Fecha</label><input type="date" id="fecha" class="w-full px-4 py-2 border rounded-lg" required></div>
+                        <div><label class="block font-semibold mb-2">Hora</label><input type="time" id="hora" class="w-full px-4 py-2 border rounded-lg" required></div>
                     </div>
-                    <div>
-                        <label class="block font-semibold text-slate-700 mb-2">Fecha del evento</label>
-                        <input type="date" id="fecha" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-pink-500 focus:outline-none" required>
+                    <div class="mb-4">
+                        <label class="block font-semibold mb-2">Tipo de Evento</label>
+                        <select id="tipo" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-pink-400" required>
+                            <option value="">Seleccionar tipo</option>
+                            <option value="Conferencia">🎤 Conferencia</option>
+                            <option value="Taller">🛠️ Taller</option>
+                            <option value="Webinar">💻 Webinar</option>
+                            <option value="Reunion">🤝 Reunión</option>
+                            <option value="Capacitacion">📚 Capacitación</option>
+                            <option value="Social">🎉 Social</option>
+                        </select>
                     </div>
-                    <div>
-                        <label class="block font-semibold text-slate-700 mb-2">Ubicación</label>
-                        <input type="text" id="ubicacion" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-pink-500 focus:outline-none" placeholder="Ejemplo: Auditorio ITM" required>
+                    <div class="mb-4"><label class="block font-semibold mb-2">Descripción</label><textarea id="descripcion" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea></div>
+                    <div class="mb-4"><label class="block font-semibold mb-2">Asistentes</label><div id="listaItems" class="participantes-container"><p class="text-center text-gray-500 py-4">Cargando miembros...</p></div><small class="text-gray-400 text-xs">Selecciona los miembros que asistirán al evento</small></div>
+                    
+                    <div class="flex gap-3">
+                        <button type="submit" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 rounded-lg transition">Registrar Evento</button>
+                        <button type="button" id="btnCancelarForm" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg transition">Cancelar</button>
                     </div>
-                    <div>
-                        <label class="block font-semibold text-slate-700 mb-2">Descripción</label>
-                        <textarea id="descripcion" rows="3" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-pink-500 focus:outline-none" placeholder="Descripción del evento..." required></textarea>
-                    </div>
-                    <button type="submit" class="w-full bg-gradient-to-r from-pink-900 to-pink-600 text-white font-bold py-3 rounded-xl hover:from-pink-800 hover:to-pink-700 transition-all hover:scale-[1.02] shadow-lg cursor-pointer">Registrar evento</button>
                 </form>
             </div>
-        </div>
 
-        <!-- Lista de eventos (cards) -->
-        <div class="bg-white rounded-2xl p-6 md:p-8 shadow-2xl">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
-                    <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <!-- Lista de Eventos -->
+            <div class="bg-white rounded-2xl shadow-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-pink-900">Lista de Eventos</h2>
+                    </div>
+                    <button id="btnNuevo" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-6 rounded-full shadow-lg transition transform hover:scale-105">+ Agregar Evento</button>
+                </div>
+
+                <hr class="h-0.5 bg-gradient-to-r from-pink-500 via-pink-300 to-transparent mb-6">
+                
+                <div id="lista" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <p class="text-center text-gray-500 col-span-full py-8">Cargando eventos...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER (FUERA del main, ocupa todo el ancho) -->
+    <footer class="relative z-10 bg-black/30 backdrop-blur-md border-t border-white/10 py-10 mt-16 w-full">
+        <div class="px-4 md:px-8 lg:px-16">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                
+                <div class="text-center md:text-left">
+                    <div class="flex items-center gap-2 justify-center md:justify-start">
+                        <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/>
+                        </svg>
+                        <span class="text-white font-bold text-lg" style="font-family: 'Orbitron', monospace;">POLARIS</span>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <p class="text-white/100 text-sm">Instituto Tecnológico de Matamoros</p>
+                    <p class="text-white/80 text-xs mt-1">© 2026 POLARIS</p>
+                </div>
+
+                <div class="text-center md:text-right">
+                    <p class="text-white/100 text-sm mb-2">Síguenos</p>
+                    <div class="flex gap-4 justify-center md:justify-end">
+                        <a href="https://facebook.com" target="_blank" class="text-white/40 hover:text-white transition">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879v-6.99h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.99C18.343 21.128 22 16.991 22 12z"/>
+                            </svg>
+                        </a>
+                        <a href="https://instagram.com" target="_blank" class="text-white/40 hover:text-white transition">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zM12 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-white/10 mt-8 pt-6 text-center">
+                <p class="text-white/20 text-[10px]">Desarrollado por Team POLARIS</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal Editar -->
+    <div id="modalEditar" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L12 15l-4 1 1-4 8.586-8.586z"></path>
                     </svg>
                 </div>
-                <h3 class="text-2xl font-bold text-pink-900">Lista de Eventos</h3>
+                <h2 class="text-2xl font-bold text-teal-900">Editar Evento</h2>
             </div>
-            <div class="h-0.5 bg-gradient-to-r from-pink-500 to-transparent rounded-full mb-6"></div>
+            <hr class="h-0.5 bg-gradient-to-r from-teal-500 via-teal-300 to-transparent mb-6">
             
-            <div id="eventos-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="col-span-full text-center text-slate-500 italic py-8">Cargando eventos...</div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Modal de edición -->
-    <div id="cardEdicion" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] hidden" onclick="if(event.target===this) cerrarEdicion()">
-        <div class="bg-white rounded-2xl p-6 md:p-8 shadow-2xl max-w-2xl w-full mx-4">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-semibold text-pink-900">Editar evento</h2>
-                <button onclick="cerrarEdicion()" class="text-slate-400 hover:text-red-500 text-2xl">&times;</button>
-            </div>
-            <div class="h-0.5 bg-gradient-to-r from-pink-400 to-transparent rounded-full mb-6"></div>
-            <form id="formEdicion" class="space-y-5">
+            <form id="formEditar">
                 <input type="hidden" id="editId">
-                <div><label class="block font-semibold text-slate-700 mb-2">Nombre del evento</label><input type="text" id="editNombre" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl" required></div>
-                <div><label class="block font-semibold text-slate-700 mb-2">Fecha</label><input type="date" id="editFecha" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl" required></div>
-                <div><label class="block font-semibold text-slate-700 mb-2">Ubicación</label><input type="text" id="editUbicacion" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl" required></div>
-                <div><label class="block font-semibold text-slate-700 mb-2">Descripción</label><textarea id="editDescripcion" rows="3" class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl" required></textarea></div>
-                <div class="grid md:grid-cols-2 gap-4">
-                    <button type="submit" class="bg-gradient-to-r from-teal-600 to-emerald-500 text-white font-bold py-3 rounded-xl hover:scale-105">Guardar cambios</button>
-                    <button type="button" onclick="cerrarEdicion()" class="bg-gradient-to-r from-red-600 to-red-500 text-white font-bold py-3 rounded-xl hover:scale-105">Cancelar</button>
+                <div class="mb-4"><label class="block font-semibold mb-2">Nombre</label><input type="text" id="editNombre" class="w-full px-4 py-2 border rounded-lg" required></div>
+                <div class="mb-4"><label class="block font-semibold mb-2">Ubicación</label><input type="text" id="editUbicacion" class="w-full px-4 py-2 border rounded-lg" required></div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div><label class="block font-semibold mb-2">Fecha</label><input type="date" id="editFecha" class="w-full px-4 py-2 border rounded-lg" required></div>
+                    <div><label class="block font-semibold mb-2">Hora</label><input type="time" id="editHora" class="w-full px-4 py-2 border rounded-lg" required></div>
+                </div>
+                <div class="mb-4">
+                    <label class="block font-semibold mb-2">Tipo</label>
+                    <select id="editTipo" class="w-full px-4 py-2 border rounded-lg">
+                        <option value="Conferencia">🎤 Conferencia</option>
+                        <option value="Taller">🛠️ Taller</option>
+                        <option value="Webinar">💻 Webinar</option>
+                        <option value="Reunion">🤝 Reunión</option>
+                        <option value="Capacitacion">📚 Capacitación</option>
+                        <option value="Social">🎉 Social</option>
+                    </select>
+                </div>
+                <div class="mb-4"><label class="block font-semibold mb-2">Descripción</label><textarea id="editDescripcion" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea></div>
+                <div class="mb-4"><label class="block font-semibold mb-2">Asistentes</label><div id="editItems" class="participantes-container"><p class="text-center py-4">Cargando...</p></div></div>
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 rounded-lg transition">Guardar</button>
+                    <button type="button" onclick="cerrarModal()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg transition">Cancelar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <footer class="border-t border-white/10 py-6 mt-8 text-center">
-        <p class="text-white/40 text-sm">POLARIS · Instituto Tecnológico de Matamoros</p>
-    </footer>
+    <!-- Modal de Alerta -->
+    <div id="modalAlerta" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] hidden">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all">
+            <div class="text-center">
+                <div id="modalIcono" class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h3 id="modalTitulo" class="text-2xl font-bold text-gray-800 mb-3">Éxito</h3>
+                <p id="modalMensaje" class="text-gray-600 mb-6">Operación completada exitosamente</p>
+                <button id="modalAceptar" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-8 rounded-lg transition">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div id="modalConfirmacion" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] hidden">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <div class="text-center">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-100 flex items-center justify-center">
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <h3 id="confirmTitulo" class="text-2xl font-bold text-gray-800 mb-3">Confirmar eliminación</h3>
+                <p id="confirmMensaje" class="text-gray-600 mb-6">¿Desea eliminar este evento?</p>
+                <div class="flex gap-3">
+                    <button id="confirmEliminar" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg transition">Eliminar</button>
+                    <button id="confirmCancelar" class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 rounded-lg transition">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        const API = '/api/eventos';
-        
-        async function cargarEventos() {
-            try {
-                const res = await fetch(API);
-                const data = await res.json();
-                document.getElementById('totalEventos').textContent = data.length;
-                const container = document.getElementById('eventos-container');
-                if (!data.length) { container.innerHTML = '<div class="col-span-full text-center text-slate-500 italic py-8">No hay eventos registrados</div>'; return; }
-                container.innerHTML = data.map(e => `
-                    <div class="bg-white/80 backdrop-blur-sm rounded-xl p-5 hover:bg-white transition w-full border border-pink-200">
-                        <h3 class="text-lg font-bold text-pink-700 mb-1">${e.nombre || 'Evento'}</h3>
-                        <p class="text-slate-700 text-sm mb-2">📅 ${e.fecha || 'Fecha por definir'}</p>
-                        <p class="text-slate-700 text-sm mb-3">📍 ${e.ubicacion || 'Ubicación por definir'}</p>
-                        <p class="text-slate-600 text-sm mb-3">${e.descripcion || 'Sin descripción'}</p>
-                        <div class="flex justify-end gap-2">
-                            <button onclick="editar(${e.id})" title="Editar" aria-label="Editar" class="inline-flex items-center justify-center bg-teal-600 text-white w-8 h-8 rounded-lg hover:bg-teal-700 transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L12 15l-4 1 1-4 8.586-8.586z" />
-                                </svg>
-                            </button>
-                            <button onclick="eliminar(${e.id})" title="Eliminar" aria-label="Eliminar" class="inline-flex items-center justify-center bg-red-600 text-white w-8 h-8 rounded-lg hover:bg-red-700 transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h8" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-            } catch(e) { console.error(e); }
+        // ==================== VARIABLES GLOBALES ====================
+        let miembros = [];
+        let eventos = [];
+
+        // ==================== MODAL DE ALERTA ====================
+        function mostrarAlerta(titulo, mensaje, tipo = 'success') {
+            const modal = document.getElementById('modalAlerta');
+            const modalTitulo = document.getElementById('modalTitulo');
+            const modalMensaje = document.getElementById('modalMensaje');
+            const modalIcono = document.getElementById('modalIcono');
+            
+            modalTitulo.textContent = titulo;
+            modalMensaje.textContent = mensaje;
+            
+            if (tipo === 'success') {
+                modalIcono.className = 'w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center';
+                modalIcono.innerHTML = `<svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+            } else if (tipo === 'error') {
+                modalIcono.className = 'w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center';
+                modalIcono.innerHTML = `<svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+            }
+            
+            modal.classList.remove('hidden');
+            
+            document.getElementById('modalAceptar').onclick = () => {
+                modal.classList.add('hidden');
+            };
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.classList.add('hidden');
+            };
         }
 
-        document.getElementById('formEvento')?.addEventListener('submit', async(e) => {
+        // ==================== MODAL DE CONFIRMACIÓN ====================
+        function mostrarConfirmacion(titulo, mensaje, callback) {
+            const modal = document.getElementById('modalConfirmacion');
+            const confirmTitulo = document.getElementById('confirmTitulo');
+            const confirmMensaje = document.getElementById('confirmMensaje');
+            const btnEliminar = document.getElementById('confirmEliminar');
+            const btnCancelar = document.getElementById('confirmCancelar');
+            
+            confirmTitulo.textContent = titulo;
+            confirmMensaje.textContent = mensaje;
+            
+            modal.classList.remove('hidden');
+            
+            const nuevoEliminar = btnEliminar.cloneNode(true);
+            const nuevoCancelar = btnCancelar.cloneNode(true);
+            btnEliminar.parentNode.replaceChild(nuevoEliminar, btnEliminar);
+            btnCancelar.parentNode.replaceChild(nuevoCancelar, btnCancelar);
+            
+            nuevoEliminar.onclick = () => {
+                modal.classList.add('hidden');
+                callback(true);
+            };
+            
+            nuevoCancelar.onclick = () => {
+                modal.classList.add('hidden');
+                callback(false);
+            };
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                    callback(false);
+                }
+            };
+        }
+
+        // ==================== FUNCIONES AUXILIARES ====================
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatFecha(fechaStr) {
+            if (!fechaStr) return '';
+            return new Date(fechaStr).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function getIconoTipo(tipo) {
+            const iconos = {
+                'Conferencia': '🎤',
+                'Taller': '🛠️',
+                'Webinar': '💻',
+                'Reunion': '🤝',
+                'Capacitacion': '📚',
+                'Social': '🎉'
+            };
+            return iconos[tipo] || '📅';
+        }
+
+        // ==================== CRUD DE MIEMBROS ====================
+        async function cargarMiembros() {
+            try {
+                const res = await fetch('/api/miembros');
+                if (res.ok) miembros = await res.json();
+            } catch (error) { console.error(error); }
+        }
+
+        // ==================== CHECKBOXES ====================
+        function renderCheckboxes(containerId, seleccionados = []) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (!miembros.length) {
+                container.innerHTML = '<p class="text-center text-gray-500 py-4">No hay miembros registrados</p>';
+                return;
+            }
+            container.innerHTML = miembros.map(m => `
+                <div class="checkbox-item">
+                    <input type="checkbox" value="${m.id}" id="${containerId}_${m.id}" ${seleccionados.includes(m.id) ? 'checked' : ''}>
+                    <label for="${containerId}_${m.id}"><strong>${escapeHtml(m.nombre)}</strong> <span class="text-xs text-pink-600">(${escapeHtml(m.rol)})</span></label>
+                </div>
+            `).join('');
+        }
+
+        function getSeleccionados(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return [];
+            return Array.from(container.querySelectorAll('input:checked')).map(cb => parseInt(cb.value));
+        }
+
+        // ==================== CREAR TARJETA HTML ====================
+        function crearTarjetaHTML(evento) {
+            const nombres = (evento.asistentes || []).map(id => {
+                const m = miembros.find(m => m.id === id);
+                return m ? m.nombre : null;
+            }).filter(n => n);
+            
+            return `
+                <div id="evento-${evento.id}" class="border rounded-xl p-4 shadow hover:shadow-lg transition hover:border-pink-300">
+                    <h3 class="text-lg font-bold text-pink-800">${escapeHtml(evento.nombre)}</h3>
+                    <p class="text-gray-500 text-xs mb-1">${getIconoTipo(evento.tipo)} ${evento.tipo} | 📍 ${escapeHtml(evento.ubicacion)}</p>
+                    <p class="text-gray-500 text-xs mb-2">📅 ${formatFecha(evento.fecha)} - ${evento.hora}</p>
+                    <p class="text-gray-600 text-sm mb-2">${escapeHtml(evento.descripcion)}</p>
+                    <div class="mt-2 pt-2 border-t">
+                        <p class="text-pink-600 text-xs font-semibold">Asistentes (${nombres.length}):</p>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            ${nombres.map(n => `<span class="text-xs bg-pink-100 text-pink-700 px-2 py-1 rounded-full">${escapeHtml(n)}</span>`).join('') || '<span class="text-gray-400 text-xs">Sin asistentes</span>'}
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 mt-3">
+                        <button onclick="editarItem(${evento.id})" class="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded text-sm transition">Editar</button>
+                        <button onclick="eliminarItem(${evento.id})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition">Eliminar</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==================== ACTUALIZAR TARJETA ESPECÍFICA ====================
+        function actualizarTarjetaEventoEnDOM(id, nuevosDatos) {
+            const indice = eventos.findIndex(e => e.id === parseInt(id));
+            if (indice !== -1) {
+                eventos[indice] = { ...eventos[indice], ...nuevosDatos };
+                const tarjetaVieja = document.getElementById(`evento-${id}`);
+                if (tarjetaVieja) {
+                    tarjetaVieja.outerHTML = crearTarjetaHTML(eventos[indice]);
+                }
+            }
+        }
+
+        // ==================== CARGAR EVENTOS ====================
+        async function cargarLista() {
+            try {
+                const res = await fetch('/api/eventos');
+                eventos = await res.json();
+                document.getElementById('totalEventos').textContent = eventos.length;
+                const container = document.getElementById('lista');
+                
+                if (!eventos.length) { 
+                    container.innerHTML = '<p class="text-center text-gray-500 col-span-full py-8">📭 No hay eventos registrados</p>'; 
+                    return; 
+                }
+                
+                container.innerHTML = eventos.map(evento => crearTarjetaHTML(evento)).join('');
+            } catch (error) { 
+                mostrarAlerta('Error', 'Error al cargar eventos', 'error'); 
+            }
+        }
+
+        // ==================== REGISTRAR EVENTO ====================
+        document.getElementById('formPrincipal')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            await fetch(API, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    nombre: document.getElementById('nombre').value,
-                    fecha: document.getElementById('fecha').value,
-                    ubicacion: document.getElementById('ubicacion').value,
-                    descripcion: document.getElementById('descripcion').value
-                })
-            });
-            cargarEventos();
-            e.target.reset();
-            document.getElementById('formularioPanel').classList.add('hidden');
+            const seleccionados = getSeleccionados('listaItems');
+            if (seleccionados.length === 0) return mostrarAlerta('Error', 'Selecciona al menos un asistente', 'error');
+            
+            const data = { 
+                nombre: document.getElementById('nombre').value, 
+                ubicacion: document.getElementById('ubicacion').value, 
+                fecha: document.getElementById('fecha').value, 
+                hora: document.getElementById('hora').value, 
+                tipo: document.getElementById('tipo').value, 
+                descripcion: document.getElementById('descripcion').value, 
+                asistentes: seleccionados 
+            };
+            
+            try {
+                const res = await fetch('/api/eventos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                if (res.ok) { 
+                    mostrarAlerta('Agregado', `"${data.nombre}" registrado con ${seleccionados.length} asistente(s)`, 'success');
+                    document.getElementById('formPrincipal').reset(); 
+                    document.getElementById('formulario').classList.add('hidden'); 
+                    cargarLista(); 
+                } else {
+                    mostrarAlerta('Error', 'No se pudo registrar el evento', 'error');
+                }
+            } catch (error) { 
+                mostrarAlerta('Error de conexión', 'No se pudo conectar con el servidor', 'error');
+            }
         });
 
-        window.editar = async (id) => {
-            const res = await fetch(API);
-            const data = await res.json();
-            const e = data.find(x => x.id === id);
-            document.getElementById('editId').value = e.id;
-            document.getElementById('editNombre').value = e.nombre;
-            document.getElementById('editFecha').value = e.fecha;
-            document.getElementById('editUbicacion').value = e.ubicacion;
-            document.getElementById('editDescripcion').value = e.descripcion;
-            document.getElementById('cardEdicion').style.display = 'flex';
-        };
-
-        document.getElementById('formEdicion')?.addEventListener('submit', async(e) => {
-            e.preventDefault();
-            await fetch(`${API}/${document.getElementById('editId').value}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    nombre: document.getElementById('editNombre').value,
-                    fecha: document.getElementById('editFecha').value,
-                    ubicacion: document.getElementById('editUbicacion').value,
-                    descripcion: document.getElementById('editDescripcion').value
-                })
-            });
-            cerrarEdicion();
-            cargarEventos();
-        });
-
-        window.eliminar = async (id) => {
-            if (confirm('¿Eliminar este evento?')) {
-                await fetch(`${API}/${id}`, { method: 'DELETE' });
-                cargarEventos();
+        // ==================== EDITAR EVENTO ====================
+        window.editarItem = async (id) => {
+            try {
+                const res = await fetch(`/api/eventos/${id}`);
+                const item = await res.json();
+                document.getElementById('editId').value = item.id;
+                document.getElementById('editNombre').value = item.nombre;
+                document.getElementById('editUbicacion').value = item.ubicacion;
+                document.getElementById('editFecha').value = item.fecha;
+                document.getElementById('editHora').value = item.hora;
+                document.getElementById('editTipo').value = item.tipo;
+                document.getElementById('editDescripcion').value = item.descripcion;
+                renderCheckboxes('editItems', item.asistentes || []);
+                document.getElementById('modalEditar').classList.remove('hidden');
+            } catch (error) { 
+                mostrarAlerta('Error', 'No se pudo cargar el evento', 'error');
             }
         };
 
-        window.cerrarEdicion = () => document.getElementById('cardEdicion').style.display = 'none';
+        // ==================== GUARDAR EDICIÓN ====================
+        document.getElementById('formEditar')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const seleccionados = getSeleccionados('editItems');
+            
+            const data = { 
+                nombre: document.getElementById('editNombre').value, 
+                ubicacion: document.getElementById('editUbicacion').value, 
+                fecha: document.getElementById('editFecha').value, 
+                hora: document.getElementById('editHora').value, 
+                tipo: document.getElementById('editTipo').value, 
+                descripcion: document.getElementById('editDescripcion').value, 
+                asistentes: seleccionados 
+            };
+            
+            try {
+                const res = await fetch(`/api/eventos/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                if (res.ok) {
+                    mostrarAlerta('Actualizado', `"${data.nombre}" actualizado correctamente`, 'success');
+                    cerrarModal();
+                    actualizarTarjetaEventoEnDOM(id, data);
+                } else {
+                    mostrarAlerta('Error', 'No se pudo actualizar el evento', 'error');
+                }
+            } catch (error) { 
+                mostrarAlerta('Error de conexión', 'No se pudo conectar con el servidor', 'error');
+            }
+        });
 
-        const menuBtn = document.getElementById('menuBtn');
-        const menuMobile = document.getElementById('menuMobile');
+        // ==================== ELIMINAR EVENTO ====================
+        window.eliminarItem = async (id) => {
+            const evento = eventos.find(e => e.id === id);
+            if (!evento) return;
+            
+            mostrarConfirmacion(
+                'Confirmar eliminación',
+                `¿Estás seguro de que deseas eliminar el evento "${evento.nombre}"?`,
+                async (confirmado) => {
+                    if (confirmado) {
+                        try { 
+                            const res = await fetch(`/api/eventos/${id}`, { method: 'DELETE' }); 
+                            if (res.ok) {
+                                mostrarAlerta('Eliminado', `"${evento.nombre}" eliminado correctamente`, 'success');
+                                cargarLista();
+                            } else {
+                                mostrarAlerta('Error', 'No se pudo eliminar el evento', 'error');
+                            }
+                        } catch (error) { 
+                            mostrarAlerta('Error de conexión', 'No se pudo conectar con el servidor', 'error');
+                        }
+                    }
+                }
+            );
+        };
 
-        if (menuBtn && menuMobile) {
-            menuBtn.addEventListener('click', () => {
-                menuMobile.classList.toggle('hidden');
-            });
+        // ==================== CERRAR MODAL ====================
+        window.cerrarModal = () => {
+            document.getElementById('modalEditar').classList.add('hidden');
+        };
 
-            menuMobile.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', () => menuMobile.classList.add('hidden'));
-            });
+        // ==================== TOGGLE FORMULARIO ====================
+        document.getElementById('btnNuevo')?.addEventListener('click', () => {
+            const form = document.getElementById('formulario');
+            form.classList.toggle('hidden');
+            if (!form.classList.contains('hidden')) renderCheckboxes('listaItems', []);
+        });
+
+        // Cancelar formulario
+        document.getElementById('btnCancelarForm')?.addEventListener('click', () => {
+            document.getElementById('formulario').classList.add('hidden');
+            document.getElementById('formPrincipal').reset();
+            document.querySelectorAll('#listaItems input:checked').forEach(cb => cb.checked = false);
+        });
+
+        // ==================== MENÚ MÓVIL ====================
+        const menuBtn = document.getElementById('menuBtn'), menuMobile = document.getElementById('menuMobile');
+        if (menuBtn && menuMobile) menuBtn.addEventListener('click', () => menuMobile.classList.toggle('hidden'));
+
+        // ==================== INICIALIZAR ====================
+        async function init() { 
+            await cargarMiembros(); 
+            await cargarLista(); 
         }
-        
-        cargarEventos();
+        init();
     </script>
 </body>
 </html>
