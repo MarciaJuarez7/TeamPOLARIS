@@ -119,8 +119,8 @@ function crearTarjetaHTML(proyecto) {
     return `
                 <div id="proyecto-${proyecto.id}" class="border rounded-xl p-4 shadow hover:shadow-xl transition card">
                     <h3 class="text-lg font-bold text-purple-800">${escapeHtml(proyecto.nombre)}</h3>
-                    <p class="text-gray-500 text-xs mb-1">📁 ${escapeHtml(proyecto.tipo)} | 📅 ${escapeHtml(proyecto.fecha)}</p>
-                    <p class="text-gray-600 text-sm mb-2">📝 ${escapeHtml(proyecto.descripcion)}</p>
+                    <p class="text-gray-500 text-xs mb-1"> ${escapeHtml(proyecto.tipo)} |  ${escapeHtml(proyecto.fecha)}</p>
+                    <p class="text-gray-600 text-sm mb-2"> ${escapeHtml(proyecto.descripcion)}</p>
                     <div class="mt-2 pt-2 border-t">
                         <p class="text-purple-600 text-xs font-semibold">👥 Participantes (${nombresParticipantes.length}):</p>
                         <div class="flex flex-wrap gap-1 mt-1">
@@ -157,7 +157,7 @@ async function cargarLista() {
         const container = document.getElementById('lista');
 
         if (!proyectos.length) {
-            container.innerHTML = '<p class="text-center text-gray-500 col-span-full py-8">📭 No hay proyectos registrados</p>';
+            container.innerHTML = '<p class="text-center text-gray-500 col-span-full py-8"> No hay proyectos registrados</p>';
             return;
         }
 

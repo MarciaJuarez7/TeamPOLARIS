@@ -460,9 +460,9 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log(`
     ═══════════════════════════════════════
-    🚀 Servidor con SQLite corriendo en:
-    📡 http://localhost:${port}
-    📁 Base de datos: polaris.db
+     Servidor con SQLite corriendo en:
+     http://localhost:${port}
+     Base de datos: polaris.db
     ═══════════════════════════════════════
     `);
 });
