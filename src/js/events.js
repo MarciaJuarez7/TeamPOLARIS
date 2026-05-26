@@ -81,14 +81,14 @@ function formatFecha(fechaStr) {
 
 function getIconoTipo(tipo) {
     const iconos = {
-        'Conferencia': '🎤',
-        'Taller': '🛠️',
-        'Webinar': '💻',
-        'Reunion': '🤝',
-        'Capacitacion': '📚',
-        'Social': '🎉'
+        'Conferencia': '',
+        'Taller': '',
+        'Webinar': '',
+        'Reunion': '',
+        'Capacitacion': '',
+        'Social': ''
     };
-    return iconos[tipo] || '📅';
+    return iconos[tipo] || '';
 }
 
 // ==================== CRUD DE MIEMBROS ====================
@@ -132,7 +132,7 @@ function crearTarjetaHTML(evento) {
                 <div id="evento-${evento.id}" class="border rounded-xl p-4 shadow hover:shadow-lg transition hover:border-pink-300">
                     <h3 class="text-lg font-bold text-pink-800">${escapeHtml(evento.nombre)}</h3>
                     <p class="text-gray-500 text-xs mb-1">${getIconoTipo(evento.tipo)} ${evento.tipo} | 📍 ${escapeHtml(evento.ubicacion)}</p>
-                    <p class="text-gray-500 text-xs mb-2">📅 ${formatFecha(evento.fecha)} - ${evento.hora}</p>
+                    <p class="text-gray-500 text-xs mb-2"> ${formatFecha(evento.fecha)} - ${evento.hora}</p>
                     <p class="text-gray-600 text-sm mb-2">${escapeHtml(evento.descripcion)}</p>
                     <div class="mt-2 pt-2 border-t">
                         <p class="text-pink-600 text-xs font-semibold">Asistentes (${nombres.length}):</p>
@@ -169,7 +169,7 @@ async function cargarLista() {
         const container = document.getElementById('lista');
 
         if (!eventos.length) {
-            container.innerHTML = '<p class="text-center text-gray-500 col-span-full py-8">📭 No hay eventos registrados</p>';
+            container.innerHTML = '<p class="text-center text-gray-500 col-span-full py-8"> No hay eventos registrados</p>';
             return;
         }
 

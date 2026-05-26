@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
@@ -460,9 +460,9 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log(`
     ═══════════════════════════════════════
-    🚀 Servidor con SQLite corriendo en:
-    📡 http://localhost:${port}
-    📁 Base de datos: polaris.db
+     Servidor con SQLite corriendo en:
+     http://localhost:${port}
+     Base de datos: polaris.db
     ═══════════════════════════════════════
     `);
 });
