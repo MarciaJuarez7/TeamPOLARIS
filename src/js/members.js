@@ -72,6 +72,42 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// Validación de correo
+function validarCorreo(email) {
+    if (!email) return false;
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+// Devuelve detalles del error para mensajes más específicos
+function validarCorreoDetalles(email) {
+    if (!email) return { valid: false, code: 'empty', message: 'El correo está vacío.' };
+    if (!email.includes('@')) return { valid: false, code: 'missing_at', message: 'Falta el símbolo @ en el correo.' };
+    const partes = email.split('@');
+    if (partes.length !== 2 || partes[0].trim() === '' ) return { valid: false, code: 'local_invalid', message: 'La parte antes de @ no es válida.' };
+    const dominio = partes[1];
+    if (!dominio || dominio.indexOf('.') === -1) return { valid: false, code: 'missing_dot', message: 'Falta el dominio o la extensión (ej: dominio.com).' };
+    const tlds = dominio.split('.');
+    const ext = tlds[tlds.length - 1];
+    if (!ext || ext.length < 2) return { valid: false, code: 'invalid_tld', message: 'La extensión del dominio no es válida (ej: .com).' };
+    // formato básico correcto
+    const ok = validarCorreo(email);
+    return ok ? { valid: true, code: 'ok', message: 'Correo válido.' } : { valid: false, code: 'format', message: 'El formato del correo no es válido.' };
+}
+
+function mostrarErrorInput(inputEl, errorEl, mensaje) {
+    if (!inputEl || !errorEl) return;
+    inputEl.classList.add('border-red-500');
+    errorEl.textContent = mensaje;
+    errorEl.classList.remove('hidden');
+}
+
+function limpiarErrorInput(inputEl, errorEl) {
+    if (!inputEl || !errorEl) return;
+    inputEl.classList.remove('border-red-500');
+    errorEl.classList.add('hidden');
+}
+
 async function cargarMiembros() {
     try {
         const res = await fetch(API);
@@ -117,6 +153,16 @@ document.getElementById('formRegistro')?.addEventListener('submit', async (e) =>
     const correo = document.getElementById('correo').value;
     const rol = document.getElementById('rol').value;
 
+    // Validación del correo con mensajes detallados
+    const detalles = validarCorreoDetalles(correo);
+    if (!detalles.valid) {
+        const input = document.getElementById('correo');
+        const err = document.getElementById('correoError');
+        mostrarErrorInput(input, err, detalles.message);
+        input.focus();
+        return false;
+    }
+
     try {
         const res = await fetch(API, {
             method: 'POST',
@@ -147,7 +193,9 @@ window.editarMiembro = async (id) => {
         document.getElementById('editNombre').value = m.nombre;
         document.getElementById('editCorreo').value = m.correo;
         document.getElementById('editRol').value = m.rol;
-        document.getElementById('cardEdicion').style.display = 'flex';
+            // Limpiar posibles errores previos
+            limpiarErrorInput(document.getElementById('editCorreo'), document.getElementById('editCorreoError'));
+            document.getElementById('cardEdicion').style.display = 'flex';
     } catch (error) {
         mostrarAlerta('Error', 'No se pudo cargar el miembro', 'error');
     }
@@ -160,6 +208,16 @@ document.getElementById('formEdicion')?.addEventListener('submit', async (e) => 
     const nombre = document.getElementById('editNombre').value;
     const correo = document.getElementById('editCorreo').value;
     const rol = document.getElementById('editRol').value;
+
+    // Validar formato de correo con mensajes detallados
+    const detalles = validarCorreoDetalles(correo);
+    if (!detalles.valid) {
+        const input = document.getElementById('editCorreo');
+        const err = document.getElementById('editCorreoError');
+        mostrarErrorInput(input, err, detalles.message);
+        input.focus();
+        return;
+    }
 
     try {
         const res = await fetch(`${API}/${id}`, {
@@ -218,12 +276,15 @@ window.cerrarEdicion = () => document.getElementById('cardEdicion').style.displa
 document.getElementById('btnMostrarFormulario')?.addEventListener('click', () => {
     const form = document.getElementById('formularioPanel');
     form.classList.toggle('hidden');
+    // Limpiar errores previos de registro cuando se muestra/oculta el formulario
+    limpiarErrorInput(document.getElementById('correo'), document.getElementById('correoError'));
 });
 
 // Cancelar formulario
 document.getElementById('btnCancelarForm')?.addEventListener('click', () => {
     document.getElementById('formularioPanel').classList.add('hidden');
     document.getElementById('formRegistro').reset();
+    limpiarErrorInput(document.getElementById('correo'), document.getElementById('correoError'));
 });
 
 // Menú móvil
@@ -237,6 +298,76 @@ if (menuBtn && menuMobile) {
         link.addEventListener('click', () => menuMobile.classList.add('hidden'));
     });
 }
+
+(() => {
+    const debounceDelay = 770; // ms
+
+    const correoInput = document.getElementById('correo');
+    const correoError = document.getElementById('correoError');
+    let correoTimer = null;
+    let correoValidatedOnce = false;
+
+    function runCorreoValidation() {
+        const det = validarCorreoDetalles(correoInput.value);
+        if (det.valid) limpiarErrorInput(correoInput, correoError);
+        else mostrarErrorInput(correoInput, correoError, det.message);
+        correoValidatedOnce = true;
+    }
+
+    if (correoInput) {
+        correoInput.addEventListener('input', () => {
+            // Mientras no se haya validado al menos una vez, esperar a que el usuario termine (debounce)
+            if (correoValidatedOnce) {
+                // Después de la primera validación, validar en tiempo real
+                const det = validarCorreoDetalles(correoInput.value);
+                if (det.valid) limpiarErrorInput(correoInput, correoError);
+                else mostrarErrorInput(correoInput, correoError, det.message);
+            } else {
+                clearTimeout(correoTimer);
+                // ocultar mensajes mientras escribe
+                limpiarErrorInput(correoInput, correoError);
+                correoTimer = setTimeout(() => runCorreoValidation(), debounceDelay);
+            }
+        });
+
+        correoInput.addEventListener('blur', () => {
+            clearTimeout(correoTimer);
+            runCorreoValidation();
+        });
+    }
+
+    // Registro para el formulario de edición
+    const editCorreoInput = document.getElementById('editCorreo');
+    const editCorreoError = document.getElementById('editCorreoError');
+    let editCorreoTimer = null;
+    let editCorreoValidatedOnce = false;
+
+    function runEditCorreoValidation() {
+        const det = validarCorreoDetalles(editCorreoInput.value);
+        if (det.valid) limpiarErrorInput(editCorreoInput, editCorreoError);
+        else mostrarErrorInput(editCorreoInput, editCorreoError, det.message);
+        editCorreoValidatedOnce = true;
+    }
+
+    if (editCorreoInput) {
+        editCorreoInput.addEventListener('input', () => {
+            if (editCorreoValidatedOnce) {
+                const det = validarCorreoDetalles(editCorreoInput.value);
+                if (det.valid) limpiarErrorInput(editCorreoInput, editCorreoError);
+                else mostrarErrorInput(editCorreoInput, editCorreoError, det.message);
+            } else {
+                clearTimeout(editCorreoTimer);
+                limpiarErrorInput(editCorreoInput, editCorreoError);
+                editCorreoTimer = setTimeout(() => runEditCorreoValidation(), debounceDelay);
+            }
+        });
+
+        editCorreoInput.addEventListener('blur', () => {
+            clearTimeout(editCorreoTimer);
+            runEditCorreoValidation();
+        });
+    }
+})();
 
 cargarMiembros();
 
